@@ -1,0 +1,44 @@
+backend/
+│
+├── src/
+│   ├── config/
+│   │   ├── config.js
+│   │   └── db.js
+│   ├── middlewares/
+│   │   ├── verifyAdmin.js
+│   │   └── verifyUser.js
+│   ├── modules/
+│   │   ├── auth/
+│   │   │   ├── authController.js
+│   │   │   ├── authRoutes.js
+│   │   │   └── authServices.js
+│   │   ├── post/
+│   │   │   ├── postModel.js
+│   │   │   ├── postRoutes.js
+│   │   │   ├── postServices.js
+│   │   │   └── postController.js
+│   │   ├── password/
+│   │   │   ├── passRoutes.js
+│   │   │   ├── passServices.js
+│   │   │   └── passController.js
+│   │   ├── user/
+│   │   │   ├── userModel.js
+│   │   │   ├── userRoutes.js
+│   │   │   ├── userServices.js
+│   │   │   └── userController.js
+│   │   ├── friend/
+│   │   │   ├── friendModel.js
+│   │   │   ├── friendRoutes.js
+│   │   │   ├── friendServices.js
+│   │   │   └── friendController.js
+│   ├── utils/
+│   │   ├── createToken.js
+│   │   ├── sendEmail.js
+│   │   └── verifyToken.js
+├── .env
+├── app.js
+├── package-lock.json
+├── package.json
+└── server.js
+
+

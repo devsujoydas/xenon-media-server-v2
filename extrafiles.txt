@@ -1,0 +1,35 @@
+
+// router.post("/upload-profile", upload.single("profileImage"), uploadProfile);
+
+const uploadProfile = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).send("No file uploaded");
+
+    const compressedBuffer = await sharp(req.file.buffer)
+      .resize(500)
+      .jpeg({ quality: 80 })
+      .toBuffer();
+
+    const base64Image = `data:${req.file.mimetype};base64,${compressedBuffer.toString("base64")}`;
+
+    const response = await axios.post(
+      `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`,
+      { image: base64Image.split(",")[1] }
+    );
+
+    const imageUrl = response.data.data.url;
+    const { email } = req.body;
+    if (!email) return res.status(400).send("Email missing");
+
+    const result = await User.findOneAndUpdate(
+      { email },
+      { profileImage: imageUrl },
+      { new: true, upsert: true }
+    );
+
+    res.json({ success: true, imageUrl, user: result });
+  } catch (error) {
+    console.error("Error in uploadProfile:", error.message);
+    res.status(500).send("Upload failed");
+  }
+};
