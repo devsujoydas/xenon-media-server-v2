@@ -12,15 +12,19 @@ backend/
 │   │   │   ├── authController.js
 │   │   │   ├── authRoutes.js
 │   │   │   └── authServices.js
+│   │   ├── friend/
+│   │   │   ├── friendController.js
+│   │   │   ├── friendRoutes.js
+│   │   │   └── friendServices.js
+│   │   ├── password/
+│   │   │   ├── passRoutes.js
+│   │   │   ├── passServices.js
+│   │   │   └── passController.js
 │   │   ├── post/
 │   │   │   ├── postModel.js
 │   │   │   ├── postRoutes.js
 │   │   │   ├── postServices.js
 │   │   │   └── postController.js
-│   │   ├── password/
-│   │   │   ├── passRoutes.js
-│   │   │   ├── passServices.js
-│   │   │   └── passController.js
 │   │   ├── user/
 │   │   │   ├── userModel.js
 │   │   │   ├── userRoutes.js
@@ -34,7 +38,9 @@ backend/
 │   ├── utils/
 │   │   ├── createToken.js
 │   │   ├── sendEmail.js
-│   │   └── verifyToken.js
+│   │   ├── verifyToken.js
+│   │   └── emailTemplates/
+│   │       └── passwordResetTemplate.js
 ├── .env
 ├── app.js
 ├── package-lock.json
