@@ -23,9 +23,11 @@ app.use(
 );
 
 
-app.get("/", (req, res) => res.send("🟢 Xenon Media v2 Connected With Server & MongoDB"));
+app.get("/", (req, res) => res.send("Xenon Media v2 Connected With Server & MongoDB"));
 app.use("/api/v2", allRoutes)
 
-app.listen(port, () => { console.log(`🟢 Mongoose Server running on port ${port}`) });
+app.listen(port, () => { 
+  console.log(`Mongoose Server running on port ${port}`) 
+});
 
 module.exports = app; 

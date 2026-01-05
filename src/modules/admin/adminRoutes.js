@@ -13,4 +13,4 @@ router.put("/remove-admin/:email", removeAdmin);
 
 
 
-module.exports = router
+module.exports = router 

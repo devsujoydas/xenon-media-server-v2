@@ -6,7 +6,9 @@ const { JWT_SECRET, ACCESS_TOKEN_EXPIRESIN } = require("../../configs/config");
 
 
 const signUpUserService = async (req, res) => {
-  const { name, email, password } = req.body;
+  // const { name, email, password } = req.body;
+
+  console.log(req.body)
 
   const exists = await User.findOne({ email });
   if (exists) throw new Error("Email already exists");

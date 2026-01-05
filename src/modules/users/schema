@@ -1,0 +1,39 @@
+{
+  "_id": {
+    "$oid": "685db079b29d4184b073b06c"
+  },
+  "name": "Sujoy Das",
+  "username": "devsujoydas",
+  "email": "devsujoydas@gmail.com",
+  "role": "admin",
+  "onlineStatus": false,
+  "createdDate": {
+    "$date": "2025-06-26T20:41:28.168Z"
+  },
+  "profile": {
+    "bio": "Professional Web Developer || Software Engineer || Full Stack Developer",
+    "coverPhotoUrl": "https://i.ibb.co.com/fY8DDXmn/IMG-20240409-164156.jpg",
+    "profilePhotoUrl": "https://i.ibb.co.com/35kKRXcT/sujoy-logo.png"
+  },
+  "contactInfo": {
+    "phone": "01303436299",
+    "website": "http://devsujoydas.vercel.app",
+    "facebook": "https://facebook.com/devsujoydas",
+    "github": "https://github.com/devsujoydas",
+    "linkedin": "https://linkedin.com/in/devsujoydas",
+    "youtube": "https://youtube.com/@devsujoydas"
+  },
+  "location": {
+    "from": "Dhaka, Bangladesh",
+    "livesIn": "Dhaka, Bangladesh"
+  },
+  "posts": [
+    {
+      "$oid": "695b5d049e0ef76484396a04"
+    }
+  ],
+  "savePosts": [],
+  "myFriends": [],
+  "friendRequests": [],
+  "sentRequests": []
+}

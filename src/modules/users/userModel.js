@@ -2,25 +2,26 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
+  username: { type: String, unique: true, lowercase: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true, },
-  password: { type: String, required: true, minlength: 6 },
   role: { type: String, enum: ["user", "admin"], default: "user", index: true, },
-
+  
   refreshToken: { type: String },
+  
+  password: { type: String, required: true, minlength: 6 },
   passwordReset: {
     token: { type: String },
     expires: { type: Date },
   },
 
   profile: {
-    username: { type: String, unique: true, lowercase: true, trim: true },
     profilePhoto: { type: String, default: "/default.jpg" },
     coverPhoto: { type: String, default: "/default-cover.jpg" },
     bio: { type: String, default: "" },
-    phone: { type: String, default: "" },
   },
-
-  socialLinks: {
+  
+  contactInfo: {
+    phone: { type: String, default: "" },
     website: { type: String, default: "" },
     facebook: { type: String, default: "" },
     linkedin: { type: String, default: "" },

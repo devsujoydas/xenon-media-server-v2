@@ -2,6 +2,8 @@ const { signUpUserService, signInUserService, logOutUserService, refreshAccessTo
 
 
 const signUpUser = async (req, res) => {
+
+  return console.log(req.body)
   try {
     const result = await signUpUserService(req, res);
     res.status(201).json(result);
