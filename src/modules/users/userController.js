@@ -3,41 +3,14 @@ const axios = require("axios");
 
 const User = require("./userModel");
 const postModel = require("../posts/postModel");
-const { getProfileServices, updateUserServices } = require("./userServices");
+const { getUserServices, updateUserServices, deleteUserService } = require("./userServices");
 
 
-const userTimers = new Map();
-const activeStatus = async (req, res) => {
-  const email = req.query.email;
-  if (!email) return res.status(400).json({ message: "Email is required" });
 
+
+const getUser = async (req, res) => {
   try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    if (!user.onlineStatus) {
-      await User.updateOne({ email }, { $set: { onlineStatus: true } });
-      console.log(`🟢 ${email} marked online`);
-    }
-
-    if (userTimers.has(email)) clearTimeout(userTimers.get(email));
-
-    const timeout = setTimeout(async () => {
-      await User.updateOne({ email }, { $set: { onlineStatus: false } });
-      userTimers.delete(email);
-    }, 4000);
-
-    userTimers.set(email, timeout);
-    res.status(200).json({ status: "online" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-}
-
-const getProfile = async (req, res) => {
-  try {
-    const user = getProfileServices(req, res)
+    const user = getUserServices(req, res)
     res.status(200).json(user);
   } catch (error) {
     console.error(error);
@@ -47,59 +20,65 @@ const getProfile = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    const userEmail = req.user?.email;
-    const updatedUser = await updateUserServices(userEmail, req.body);
+    const updatedUser = await updateUserServices(req);
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Profile updated successfully",
       user: updatedUser,
     });
+
   } catch (error) {
+
+    if (error.message === "USERNAME_ALREADY_EXISTS") {
+      return res.status(409).json({
+        message: "This username already exists",
+      });
+    }
+
+    if (error.message === "NO_FIELDS_TO_UPDATE") {
+      return res.status(400).json({
+        message: "No fields provided for update",
+      });
+    }
+
+    if (error.message === "USER_EMAIL_NOT_FOUND") {
+      return res.status(401).json({
+        message: "Unauthorized user",
+      });
+    }
+
+    if (error.message === "USER_NOT_FOUND") {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
     console.error("Update user error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    return res.status(500).json({
+      message: "Server error",
+    });
   }
 };
 
-const updateUserName = async (req, res) => {
-  try {
-    const { email, username } = req.body;
-    if (!email || !username) return res.status(400).json({ message: "Email and username required" });
-
-    const existingUser = await User.findOne({ username });
-    if (existingUser) return res.status(400).json({ message: "This username already existed" });
-
-    const result = await User.updateOne({ email }, { $set: { username } });
-    res.status(200).json(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-}
 const deleteUser = async (req, res) => {
   try {
-    const email = req.params.email;
-    const userDeleted = await User.deleteOne({ email });
-    const postsDeleted = await postModel.deleteMany({ author: email });
-    const likesUpdated = await postModel.updateMany({}, { $pull: { likes: email } });
-
-    res.status(200).json({
-      message: "Account and related data deleted successfully",
-      userDeleted: userDeleted.deletedCount,
-      postsDeleted: postsDeleted.deletedCount,
-      likesUpdated: likesUpdated.modifiedCount
+    const result = await deleteUserService(req.user._id);
+    return res.status(200).json({
+      message: "Account deleted successfully",
+      ...result,
     });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    if (error.message === "EMAIL_REQUIRED") {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    if (error.message === "USER_NOT_FOUND") {
+      return res.status(404).json({ message: "User not found" });
+    }
+    console.error("Delete user error:", error);
+    return res.status(500).json({ message: "Server error" });
   }
-}
-
-
-
-
-
-
-
+};
 
 
 
@@ -136,7 +115,34 @@ const search = async (req, res) => {
 };
 
 
+const userTimers = new Map();
+const activeStatus = async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.status(400).json({ message: "Email is required" });
 
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user.onlineStatus) {
+      await User.updateOne({ email }, { $set: { onlineStatus: true } });
+      console.log(`🟢 ${email} marked online`);
+    }
+
+    if (userTimers.has(email)) clearTimeout(userTimers.get(email));
+
+    const timeout = setTimeout(async () => {
+      await User.updateOne({ email }, { $set: { onlineStatus: false } });
+      userTimers.delete(email);
+    }, 4000);
+
+    userTimers.set(email, timeout);
+    res.status(200).json({ status: "online" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+}
 
 
 
@@ -144,11 +150,9 @@ const search = async (req, res) => {
 
 
 module.exports = {
-  getProfile,
+  getUser,
   search,
   activeStatus,
   updateUser,
-  updateUserName,
   deleteUser,
-
 };

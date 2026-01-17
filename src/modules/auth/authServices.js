@@ -4,56 +4,37 @@ const createTokens = require("../../utils/createTokens");
 const User = require("../users/userModel");
 const { JWT_SECRET, ACCESS_TOKEN_EXPIRESIN } = require("../../configs/config");
 
+
 const signUpUserService = async (req, res) => {
-  try {
-    const { name, email, password, confirmpassword } = req.body;
+  const { name, email, password } = req.body;
 
-    // 1. Validate passwords
-    if (password !== confirmpassword) {
-      return res.status(400).json({
-        message: "Passwords do not match",
-      });
-    }
+  const exists = await User.findOne({ email });
+  if (exists) { throw new Error("Email already exists") }
 
-    // 2. Check existing user
-    const exists = await User.findOne({ email });
-    if (exists) {
-      return res.status(409).json({
-        message: "Email already exists",
-      });
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 4. Create user
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
+  const user = await User.create({
+    name, email,
+    password: hashedPassword,
+  });
 
-    // 5. Generate tokens
-    const { accessToken, refreshToken } = createTokens(res, user);
+  const username = email.split("@")[0].split("+")[0];
+  const { accessToken, refreshToken } = createTokens(res, user);
 
-    user.refreshToken = refreshToken;
-    await user.save();
+  user.username = username;
+  user.refreshToken = refreshToken;
+  await user.save();
 
-    // 6. Send response
-    return res.status(201).json({
-      message: "User registered successfully",
-      user,
-      accessToken,
-    });
-
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message || "Server error",
-    });
-  }
+  return {
+    message: "User registered successfully",
+    user,
+    accessToken,
+  };
 };
 
+const signInUserService = async (req, res) => {
+  const { email, password } = req.body
 
-
-const signInUserService = async (email, password, res) => {
   const user = await User.findOne({ email });
   if (!user) throw new Error("User not found");
 
@@ -67,40 +48,24 @@ const signInUserService = async (email, password, res) => {
 
   return {
     message: "Login successful",
-    user: { _id: user._id, name: user.name, email: user.email },
+    user,
     accessToken,
   };
 };
 
-const logOutUserService = async (req, res) => {
-  try {
-    const refreshToken = req.cookies?.refreshToken;
-
-    if (!refreshToken) {
-      return res.status(400).json({ message: "No refresh token found" });
-    }
-
-    const user = await User.findOne({ refreshToken });
-    if (user) {
-      user.refreshToken = null;
-      await user.save();
-    }
-
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-    });
-
-    return res.status(200).json({ message: "Logged out successfully" });
-
-  } catch (error) {
-    console.error("Logout error:", error);
-    return res.status(500).json({ message: "Logout failed", error: error.message });
+const logOutUserService = async (refreshToken) => {
+  if (!refreshToken) {
+    throw new Error("NO_REFRESH_TOKEN");
   }
+
+  const user = await User.findOne({ refreshToken });
+  if (user) {
+    user.refreshToken = null;
+    await user.save();
+  }
+
+  return true;
 };
-
-
 
 const refreshAccessTokenService = (req, res) => {
   const refreshToken = req.cookies.refreshToken;
@@ -116,13 +81,12 @@ const refreshAccessTokenService = (req, res) => {
     const newAccessToken = jwt.sign(
       { id: decoded.id, email: decoded.email, role: decoded.role },
       JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: `${ACCESS_TOKEN_EXPIRESIN}` }
     );
-
     return res.status(200).json({ accessToken: newAccessToken });
   });
 };
-
+ 
 
 
 module.exports = {
