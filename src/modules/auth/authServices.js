@@ -4,29 +4,53 @@ const createTokens = require("../../utils/createTokens");
 const User = require("../users/userModel");
 const { JWT_SECRET, ACCESS_TOKEN_EXPIRESIN } = require("../../configs/config");
 
-
 const signUpUserService = async (req, res) => {
-  // const { name, email, password } = req.body;
+  try {
+    const { name, email, password, confirmpassword } = req.body;
 
-  console.log(req.body)
+    // 1. Validate passwords
+    if (password !== confirmpassword) {
+      return res.status(400).json({
+        message: "Passwords do not match",
+      });
+    }
 
-  const exists = await User.findOne({ email });
-  if (exists) throw new Error("Email already exists");
+    // 2. Check existing user
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.status(409).json({
+        message: "Email already exists",
+      });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await User.create({ name, email, password: hashedPassword });
+    // 4. Create user
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+    });
 
-  const { accessToken, refreshToken } = createTokens(res, user);
+    // 5. Generate tokens
+    const { accessToken, refreshToken } = createTokens(res, user);
 
-  user.refreshToken = refreshToken;
-  await user.save();
+    user.refreshToken = refreshToken;
+    await user.save();
 
-  return {
-    message: "User registered successfully",
-    user: user,
-    accessToken,
-  };
+    // 6. Send response
+    return res.status(201).json({
+      message: "User registered successfully",
+      user,
+      accessToken,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Server error",
+    });
+  }
 };
+
 
 
 const signInUserService = async (email, password, res) => {
@@ -94,7 +118,7 @@ const refreshAccessTokenService = (req, res) => {
       JWT_SECRET,
       { expiresIn: "15m" }
     );
- 
+
     return res.status(200).json({ accessToken: newAccessToken });
   });
 };

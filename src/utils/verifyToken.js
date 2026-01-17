@@ -7,7 +7,7 @@ const verifyTokenAndGetUser = async (req) => {
   if (!authHeader?.startsWith("Bearer ")) {
     return { error: { status: 401, message: "Unauthorized: No token found!" } };
   }
-
+  
   try {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, JWT_SECRET);

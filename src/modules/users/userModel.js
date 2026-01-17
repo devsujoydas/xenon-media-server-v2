@@ -5,9 +5,10 @@ const userSchema = new mongoose.Schema({
   username: { type: String, unique: true, lowercase: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true, },
   role: { type: String, enum: ["user", "admin"], default: "user", index: true, },
-  
+
+  onlineStatus: { type: Boolean, default: false },
   refreshToken: { type: String },
-  
+
   password: { type: String, required: true, minlength: 6 },
   passwordReset: {
     token: { type: String },
@@ -15,19 +16,19 @@ const userSchema = new mongoose.Schema({
   },
 
   profile: {
+    bio: { type: String, default: "" },
     profilePhoto: { type: String, default: "/default.jpg" },
     coverPhoto: { type: String, default: "/default-cover.jpg" },
-    bio: { type: String, default: "" },
   },
-  
+
   contactInfo: {
     phone: { type: String, default: "" },
     website: { type: String, default: "" },
     facebook: { type: String, default: "" },
+    github: { type: String, default: "" },
     linkedin: { type: String, default: "" },
     twitter: { type: String, default: "" },
     instagram: { type: String, default: "" },
-    github: { type: String, default: "" },
     youtube: { type: String, default: "" },
   },
   location: {
@@ -35,20 +36,23 @@ const userSchema = new mongoose.Schema({
     livesIn: { type: String, default: "" }
   },
 
+  savePosts: [{
+    postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" }
+  }],
+
   friendRequests: [{
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     requestedAt: { type: Date, default: Date.now }
   }],
   sentRequests: [{
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     requestedAt: { type: Date, default: Date.now }
   }],
   myFriends: [{
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     since: { type: Date, default: Date.now }
   }],
 
-  onlineStatus: { type: Boolean, default: false },
 },
   { timestamps: true }
 );

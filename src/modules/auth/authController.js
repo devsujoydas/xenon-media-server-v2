@@ -1,9 +1,8 @@
 const { signUpUserService, signInUserService, logOutUserService, refreshAccessTokenService, } = require("./authServices");
 
 
-const signUpUser = async (req, res) => {
 
-  return console.log(req.body)
+const signUpUser = async (req, res) => {  
   try {
     const result = await signUpUserService(req, res);
     res.status(201).json(result);
