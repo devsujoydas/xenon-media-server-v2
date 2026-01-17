@@ -10,8 +10,10 @@ const commentSchema = new mongoose.Schema({
 const postSchema = new mongoose.Schema(
   {
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    postImageUrl: { type: String, default: "" },
-    postContent: { type: String, default: "" },
+    content: {
+      imageUrl: { type: String, default: "" },
+      text: { type: String, default: "" },
+    },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     comments: [commentSchema],
     shares: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

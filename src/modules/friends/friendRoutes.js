@@ -1,11 +1,15 @@
 const express = require("express");
 const router = express.Router();
 
-const { getAllUser, getFriend, myFriends, requests, sentrequest, youMayKnow, addFriend, cancelsentrequest, cancelreceivedrequest, confirmFriend, unfriend } = require("./friendController");
+const {  getFriend, myFriends, requests, sentrequest, youMayKnow, addFriend, cancelsentrequest, cancelreceivedrequest, confirmFriend, unfriend } = require("./friendController");
 
 
 
-router.get("/allUsers", getAllUser);
+
+
+
+
+
 router.get("/:username", getFriend);
 router.get("/myfriends", myFriends);
 router.get("/requests", requests);

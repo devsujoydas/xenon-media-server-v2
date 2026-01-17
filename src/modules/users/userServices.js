@@ -3,6 +3,14 @@ const postModel = require("../posts/postModel");
 const User = require("./userModel");
 
 
+const getAllUsersServices = async (req) => {
+  const id = req.user?._id
+  if (!id) { throw new Error("USER_ID_REQUIRED"); }
+  const users = await User.find().select("-password -refreshToken");
+  const userCounts = await User.countDocuments()
+  return { users, userCounts };
+};
+
 const getUserServices = (req, res) => {
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
   const user = req.user;
@@ -74,4 +82,4 @@ const deleteUserService = async (id) => {
 
 
 
-module.exports = { getUserServices, updateUserServices, deleteUserService }
+module.exports = { getAllUsersServices, getUserServices, updateUserServices, deleteUserService }

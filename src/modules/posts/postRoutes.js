@@ -5,16 +5,19 @@ const userModel = require("../users/userModel");
 const postModel = require("./postModel");
 
 const { mongoose } = require("mongoose");
+const { getPosts, deletePost, updatePost, getPost, createPost, getUsersPosts } = require("./postController");
+const isVerifyUser = require("../../middlewares/verifyUser");
 
-router.get("/", async (req, res) => {
-  try {
-    const posts = await postModel.aggregate([{ $sample: { size: await postModel.countDocuments() } }]);
-    res.json(posts);
-  } catch (error) {
-    console.error("Error getting posts:", error);
-    res.status(500).json({ message: "Failed to fetch posts" });
-  }
-});
+
+router.get("/", isVerifyUser, getPosts);
+
+router.get("/:id", isVerifyUser, getPost);
+router.post("/", isVerifyUser, createPost);
+router.put("/:id", isVerifyUser, updatePost);
+router.delete("/:id", isVerifyUser, deletePost);
+
+
+
 
 router.post("/", async (req, res) => {
   try {
@@ -24,7 +27,7 @@ router.post("/", async (req, res) => {
     if (existingPost) return res.status(409).json({ message: "This Image URL was already taken" });
 
     const newPost = await postModel.create(postData);
- 
+
     await userModel.updateOne({ _id: postData.author }, { $push: { posts: newPost._id } });
 
     res.status(201).json(newPost);
@@ -86,6 +89,8 @@ router.delete("/delete/:id", async (req, res) => {
   }
 });
 
+
+
 router.put("/like/:id", async (req, res) => {
   try {
     const { userId } = req.body;
@@ -107,6 +112,10 @@ router.put("/like/:id", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+
+
+
 
 router.post("/:postId/comment", async (req, res) => {
   const { postId } = req.params;

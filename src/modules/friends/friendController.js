@@ -1,16 +1,4 @@
-const getAllUser = async (req, res) => {
-    try {
-        const email = req.query.email;
-        if (!email) return res.status(400).send("Email missing");
 
-        const allUsers = await userModel.find({ email: { $ne: email } });
-        console.log(allUsers)
-        res.json(allUsers);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
-    }
-}
 
 
 const getFriend = async (req, res) => {
@@ -188,7 +176,6 @@ const unfriend = async (req, res) => {
 }
 
 module.exports = {
-    getAllUser,
     getFriend,
     myFriends,
     requests,

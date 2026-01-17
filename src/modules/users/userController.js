@@ -3,10 +3,19 @@ const axios = require("axios");
 
 const User = require("./userModel");
 const postModel = require("../posts/postModel");
-const { getUserServices, updateUserServices, deleteUserService } = require("./userServices");
+const { getUserServices, updateUserServices, deleteUserService, getAllUsersServices } = require("./userServices");
 
 
 
+const getUsers = async (req, res) => {
+  try {
+    const { users, userCounts } = await getAllUsersServices(req)
+    res.json({ userCounts, users });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+}
 
 const getUser = async (req, res) => {
   try {
@@ -83,6 +92,7 @@ const deleteUser = async (req, res) => {
 
 
 
+
 const search = async (req, res) => {
   try {
     const query = req.query.q || "";
@@ -113,8 +123,6 @@ const search = async (req, res) => {
     res.status(500).json({ error: "Server Error" });
   }
 };
-
-
 const userTimers = new Map();
 const activeStatus = async (req, res) => {
   const email = req.query.email;
@@ -150,6 +158,7 @@ const activeStatus = async (req, res) => {
 
 
 module.exports = {
+  getUsers,
   getUser,
   search,
   activeStatus,
