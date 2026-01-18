@@ -5,113 +5,21 @@ const userModel = require("../users/userModel");
 const postModel = require("./postModel");
 
 const { mongoose } = require("mongoose");
-const { getPosts, deletePost, updatePost, getPost, createPost, getUsersPosts } = require("./postController");
+const { getPosts, deletePost, updatePost, getPost, createPost, getUsersPosts, reactPost } = require("./postController");
 const isVerifyUser = require("../../middlewares/verifyUser");
 
 
 router.get("/", isVerifyUser, getPosts);
+// router.get("/search=&text=", isVerifyUser, getPosts); for searching post
 
 router.get("/:id", isVerifyUser, getPost);
 router.post("/", isVerifyUser, createPost);
 router.put("/:id", isVerifyUser, updatePost);
 router.delete("/:id", isVerifyUser, deletePost);
 
+router.put("/:id/like", isVerifyUser, reactPost);
 
 
-
-router.post("/", async (req, res) => {
-  try {
-    const postData = req.body;
-
-    const existingPost = await postModel.findOne({ postImageUrl: postData.postImageUrl });
-    if (existingPost) return res.status(409).json({ message: "This Image URL was already taken" });
-
-    const newPost = await postModel.create(postData);
-
-    await userModel.updateOne({ _id: postData.author }, { $push: { posts: newPost._id } });
-
-    res.status(201).json(newPost);
-  } catch (error) {
-    console.error("Error creating post:", error);
-    res.status(500).json({ message: "Failed to create post" });
-  }
-});
-
-router.get("/:id", async (req, res) => {
-  console.log("Received ID:", req.params.id);
-
-  try {
-    const id = new mongoose.Types.ObjectId(req.params.id);
-    const post = await postModel
-      .findById(id)
-      .populate("author", "name username profilePhotoUrl");
-
-    console.log("Found Post:", post);
-
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
-    }
-
-    res.json(post);
-  } catch (error) {
-    console.error("Error fetching post:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-router.put("/update/:id", async (req, res) => {
-  try {
-    const { postContent, postImageUrl } = req.body;
-    const updatedPost = await postModel.findByIdAndUpdate(
-      req.params.id,
-      { postContent, postImageUrl, lastUpdateDate: new Date() },
-      { new: true }
-    );
-    res.json(updatedPost);
-  } catch (error) {
-    console.error("Error updating post:", error);
-    res.status(500).json({ message: "Failed to update post" });
-  }
-});
-
-router.delete("/delete/:id", async (req, res) => {
-  try {
-    const post = await postModel.findById(req.params.id);
-    if (!post) return res.status(404).json({ message: "Post not found" });
-
-    await userModel.updateOne({ _id: post.author }, { $pull: { posts: post._id } });
-
-    await post.remove();
-    res.json({ message: "Post deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting post:", error);
-    res.status(500).json({ message: "Failed to delete post" });
-  }
-});
-
-
-
-router.put("/like/:id", async (req, res) => {
-  try {
-    const { userId } = req.body;
-    const post = await postModel.findById(req.params.id);
-    if (!post) return res.status(404).json({ message: "Post not found" });
-
-    const alreadyLiked = post.likes.includes(userId);
-    if (alreadyLiked) {
-      post.likes.pull(userId);
-      await post.save();
-      return res.json({ message: "Disliked", post });
-    } else {
-      post.likes.addToSet(userId);
-      await post.save();
-      return res.json({ message: "Liked", post });
-    }
-  } catch (error) {
-    console.error("Error liking post:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
 
 
 

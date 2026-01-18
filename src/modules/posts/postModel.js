@@ -9,7 +9,7 @@ const commentSchema = new mongoose.Schema({
 
 const postSchema = new mongoose.Schema(
   {
-    author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true, required: true },
     content: {
       imageUrl: { type: String, default: "" },
       text: { type: String, default: "" },

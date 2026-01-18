@@ -93,36 +93,7 @@ const deleteUser = async (req, res) => {
 
 
 
-const search = async (req, res) => {
-  try {
-    const query = req.query.q || "";
-    if (!query.trim()) return res.json({ posts: [], users: [] });
 
-    const email = req.query.email;
-    if (!email) return res.status(400).send("Email missing");
-
-    const limit = parseInt(req.query.limit) || 10;
-    const regex = new RegExp(query, "i");
-
-    const posts = await postModel.find({ postContent: { $regex: regex } })
-      .limit(limit)
-      .exec();
-
-    const users = await User.find({
-      $and: [
-        { $or: [{ name: { $regex: regex } }, { email: { $regex: regex } }] },
-        { email: { $ne: email } },
-      ],
-    })
-      .limit(limit)
-      .exec();
-
-    res.json({ posts, users });
-  } catch (err) {
-    console.error("Error in search:", err);
-    res.status(500).json({ error: "Server Error" });
-  }
-};
 const userTimers = new Map();
 const activeStatus = async (req, res) => {
   const email = req.query.email;
@@ -160,7 +131,6 @@ const activeStatus = async (req, res) => {
 module.exports = {
   getUsers,
   getUser,
-  search,
   activeStatus,
   updateUser,
   deleteUser,

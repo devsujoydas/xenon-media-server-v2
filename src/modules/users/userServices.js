@@ -4,12 +4,30 @@ const User = require("./userModel");
 
 
 const getAllUsersServices = async (req) => {
-  const id = req.user?._id
-  if (!id) { throw new Error("USER_ID_REQUIRED"); }
-  const users = await User.find().select("-password -refreshToken");
-  const userCounts = await User.countDocuments()
+  const id = req.user?._id;
+  if (!id) throw new Error("USER_ID_REQUIRED");
+
+  const { search, role, status } = req.query;
+
+  const filter = {};
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } }
+    ];
+  }
+  if (role) { filter.role = role; }
+  if (status) { filter.status = status; }
+
+  const users = await User.find(filter)
+    .select("-password -refreshToken")
+    .sort({ createdAt: -1 });
+
+  const userCounts = await User.countDocuments(filter);
+
   return { users, userCounts };
 };
+
 
 const getUserServices = (req, res) => {
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
@@ -18,7 +36,7 @@ const getUserServices = (req, res) => {
 }
 
 const updateUserServices = async (req) => {
-  const { name, username, profile, socialLinks, location } = req.body;
+  const { name, username, profile, contactInfo, socialLinks, location } = req.body;
 
   const email = req.user?.email;
   if (!email) { throw new Error("USER_EMAIL_NOT_FOUND"); }
@@ -37,6 +55,7 @@ const updateUserServices = async (req) => {
 
   buildNestedUpdateFields(profile, "profile", updateFields);
   buildNestedUpdateFields(socialLinks, "socialLinks", updateFields);
+  buildNestedUpdateFields(contactInfo, "contactInfo", updateFields);
   buildNestedUpdateFields(location, "location", updateFields);
 
   if (Object.keys(updateFields).length === 0) {
@@ -47,7 +66,7 @@ const updateUserServices = async (req) => {
     { email },
     { $set: updateFields },
     { new: true }
-  );
+  ).select("-refreshToken");
 
   if (!updatedUser) { throw new Error("USER_NOT_FOUND"); }
   return updatedUser;
@@ -59,9 +78,7 @@ const deleteUserService = async (id) => {
   }
 
   const user = await User.findById(id);
-  if (!user) {
-    throw new Error("USER_NOT_FOUND");
-  }
+  if (!user) { throw new Error("USER_NOT_FOUND"); }
 
   const userDeleted = await User.deleteOne({ _id: id });
   const postsDeleted = await postModel.deleteMany({ author: id });

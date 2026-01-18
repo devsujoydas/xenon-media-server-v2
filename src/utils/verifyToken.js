@@ -5,21 +5,21 @@ const { JWT_SECRET } = require("../configs/config");
 const verifyTokenAndGetUser = async (req) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
-    return { error: { status: 401, message: "Unauthorized: No token found!" } };
+    return { error: { status: 401, message: "Unauthorized access, Please Sign In!" } };
   }
   
   try {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    const user = await User.findById(decoded.id).select("-password");
+    const user = await User.findById(decoded.id).select("-password -refreshToken");
     if (!user) {
       return { error: { status: 404, message: "User not found" } };
     }
 
     return { user };
   } catch (error) {
-    return { error: { status: 403, message: "Invalid or expired token" } };
+    return { error: { status: 403, message: "Unauthorized access, Please Sign In!" } };
   }
 };
 

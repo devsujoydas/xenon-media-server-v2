@@ -35,7 +35,7 @@ const signUpUserService = async (req, res) => {
 const signInUserService = async (req, res) => {
   const { email, password } = req.body
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select("+password");
   if (!user) throw new Error("User not found");
 
   const isMatch = await bcrypt.compare(password, user.password);
@@ -47,7 +47,7 @@ const signInUserService = async (req, res) => {
   await user.save();
 
   return {
-    message: "Login successful",
+    message: "Login successfull",
     user,
     accessToken,
   };
@@ -86,7 +86,7 @@ const refreshAccessTokenService = (req, res) => {
     return res.status(200).json({ accessToken: newAccessToken });
   });
 };
- 
+
 
 
 module.exports = {
