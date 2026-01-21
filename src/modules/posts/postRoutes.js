@@ -1,10 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const userModel = require("../users/userModel");
-const postModel = require("./postModel");
+const postModel = require("./postModel"); 
 
-const { mongoose } = require("mongoose");
 const { getPosts, deletePost, updatePost, getPost, createPost, getUsersPosts, reactPost } = require("./postController");
 const isVerifyUser = require("../../middlewares/verifyUser");
 
@@ -16,7 +14,6 @@ router.get("/:id", isVerifyUser, getPost);
 router.post("/", isVerifyUser, createPost);
 router.put("/:id", isVerifyUser, updatePost);
 router.delete("/:id", isVerifyUser, deletePost);
-
 router.put("/:id/like", isVerifyUser, reactPost);
 
 

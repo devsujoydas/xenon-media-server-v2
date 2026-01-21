@@ -43,7 +43,6 @@ const getPostsServices = async (req) => {
   };
 };
 
-
 const getPostServices = async (req) => {
     const postId = req.params.id;
 
@@ -68,8 +67,6 @@ const getPostServices = async (req) => {
             : false,
     };
 };
-
-
 
 const createPostServices = async (req) => {
     const author = req.user._id;
