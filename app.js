@@ -11,8 +11,8 @@ const friendRoutes = require("./src/modules/friends/friendRoutes");
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/posts", postRoutes);
+router.use("/password", passRoutes); 
 
-router.use("/password", passRoutes);
 router.use("/friends", friendRoutes);
 
 

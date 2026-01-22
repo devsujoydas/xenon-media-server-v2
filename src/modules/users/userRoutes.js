@@ -2,19 +2,25 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const upload = multer();
-const { getUser, activeStatus, updateUser, deleteUser, getUsers } = require("./userController");
+const {
+    getUsers,
+    getProfile,
+    updateProfile,
+    deleteProfile,
+    activeStatus,
+} = require("./userController");
 const isVerifyUser = require("../../middlewares/verifyUser");
 
 
-router.get("/",isVerifyUser, getUsers);
+router.get("/", isVerifyUser, getUsers);
 
-router.get("/profile",isVerifyUser, getUser);
-router.put("/profile",isVerifyUser, updateUser);
-router.delete("/profile",isVerifyUser, deleteUser);
+router.get("/profile", isVerifyUser, getProfile);
+router.put("/profile", isVerifyUser, updateProfile);
+router.delete("/profile", isVerifyUser, deleteProfile);
 
- 
 
-router.post("/active-status",isVerifyUser, activeStatus);
+
+router.post("/active-status", isVerifyUser, activeStatus);
 
 
 module.exports = router;

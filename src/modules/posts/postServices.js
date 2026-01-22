@@ -1,51 +1,15 @@
+const fetchPosts = require("../../utils/fetchPosts");
 const shuffleArray = require("../../utils/shuffleArray");
 const User = require("../users/userModel");
+const Comment = require("./commentModel");
 const Post = require("./postModel");
 
-const fetchPosts = async (filter, userId) => {
-    const posts = await Post
-        .find(filter)
-        .populate("author", "name username profile.profilePhoto")
-        .populate("likes", "name username profile.profilePhoto");
 
-    const postsWithLikes = posts.map(post => {
-        const postObj = post.toObject();
-        return {
-            ...postObj,
-            likesCount: postObj.likes.length,
-            likedByMe: userId
-                ? post.likes.some(u => u._id.equals(userId))
-                : false
-        };
-    });
-
-    return {
-        totalPosts: posts.length,
-        posts: postsWithLikes
-    };
-};
 
 
 const getPostsServices = async (req) => {
-    const userId = req?.user?._id;
+    const userId = req?.user?.id;
     const filter = {};
-
-    if (req.query.search) {
-        filter["content.text"] = {
-            $regex: req.query.search,
-            $options: "i"
-        };
-    }
-
-    return fetchPosts(filter, userId);
-};
-
-const getMyPostsServices = async (req) => {
-    const userId = req.user._id;
-
-    const filter = {
-        author: userId
-    };
 
     if (req.query.search) {
         filter["content.text"] = {
@@ -60,8 +24,14 @@ const getMyPostsServices = async (req) => {
 const getUserPostsServices = async (req) => {
     const viewerId = req?.user?._id;
     const profileUserId = req.params.userId;
-
     const filter = { author: profileUserId };
+    return fetchPosts(filter, viewerId);
+};
+
+const getMyPostsServices = async (req) => {
+    const userId = req.user.id;
+
+    const filter = { author: userId };
 
     if (req.query.search) {
         filter["content.text"] = {
@@ -70,8 +40,24 @@ const getUserPostsServices = async (req) => {
         };
     }
 
-    return fetchPosts(filter, viewerId);
+    return fetchPosts(filter, userId);
 };
+
+const getMySavedPostsService = async (req) => {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).select("savePosts");
+    if (!user) throw new Error("USER_NOT_FOUND");
+
+    if (!user.savePosts || user.savePosts.length === 0) {
+        return { totalPosts: 0, posts: [] };
+    }
+
+    const filter = { _id: { $in: user.savePosts } };
+
+    return fetchPosts(filter, userId);
+};
+
 
 
 const getPostServices = async (req) => {
@@ -80,25 +66,23 @@ const getPostServices = async (req) => {
     const post = await Post
         .findById(postId)
         .populate("author", "name username profile.profilePhoto")
-        .populate("likes", "name username profile.profilePhoto");
-
-
+        .populate("likes", "name username profile.profilePhoto")
 
     if (!post) throw new Error("POST_NOT_FOUND");
 
     const postObj = post.toObject();
-    console.log(post)
     return {
         ...postObj,
         likesCount: postObj.likes.length,
         likedByMe: req.user
-            ? postObj.likes.some((u) => u._id.equals(req.user._id))
+            ? postObj.likes.some((u) => u._id.equals(req.user.id))
             : false,
     };
 };
 
+
 const createPostServices = async (req) => {
-    const author = req.user._id;
+    const author = req.user.id;
     const { imageUrl, text } = req.body;
     if (!text && !imageUrl) { throw new Error("CONTENT_REQUIRED"); }
     const existingPost = await Post.findOne({
@@ -122,7 +106,7 @@ const updatePostServices = async (req) => {
     const post = await Post.findById(postId)
     if (!post) { throw new Error("POST_NOT_FOUND") }
 
-    if (!post.author.equals(req.user._id)) {
+    if (!post.author.equals(req.user.id)) {
         throw new Error("INVALID_POST_AUTHOR");
     }
 
@@ -137,7 +121,7 @@ const deletePostServices = async (req) => {
     const post = await Post.findById(postId);
     if (!post) throw new Error("POST_NOT_FOUND");
 
-    if (!post.author.equals(req.user._id) && req.user.role !== "admin") {
+    if (!post.author === req.user.id && req.user.role !== "admin") {
         throw new Error("INVALID_POST_AUTHOR");
     }
 
@@ -151,7 +135,7 @@ const deletePostServices = async (req) => {
 };
 
 const savePostServices = async (req) => {
-    const userId = req.user._id;
+    const userId = req.user.id;
     const postId = req.params?.id;
 
     const post = await Post.findById(postId);
@@ -175,16 +159,14 @@ const savePostServices = async (req) => {
 
 const reactPostServices = async (req) => {
 
-    const userId = req.user._id;
+    const userId = req.user.id;
     const postId = req.params?.id;
 
     const post = await Post.findById(postId);
     if (!post) { throw new Error("POST_NOT_FOUND") }
 
 
-    const alreadyLiked = post.likes.some(
-        (id) => id.equals(userId)
-    );
+    const alreadyLiked = post.likes.find((id) => id == userId);
 
     if (alreadyLiked) {
         post.likes.pull(userId);
@@ -199,14 +181,116 @@ const reactPostServices = async (req) => {
 }
 
 
+
+
+const getCommentsService = async (req) => {
+    const postId = req.params.postId;
+
+    const post = await Post.findById(postId);
+    if (!post) throw new Error("POST_NOT_FOUND");
+
+    const comments = await Comment.find({ postId })
+        .sort({ createdAt: -1 })
+        .populate("author", "name username profile.profilePhoto");
+
+    return { totalComments: comments.length, comments };
+};
+
+
+const createCommentService = async (req) => {
+    const text = req.body.text;
+    const postId = req.params.postId;
+    const userId = req.user.id;
+
+    if (!text) throw new Error("TEXT_REQUIRED");
+
+    const post = await Post.findById(postId);
+    if (!post) throw new Error("POST_NOT_FOUND");
+
+    const newComment = await Comment.create({
+        text,
+        author: userId,
+        postId,
+    });
+
+    return newComment;
+};
+
+
+const updateCommentService = async (req) => {
+    const { postId, commentId } = req.params;
+    const { text } = req.body;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    if (!postId || !commentId) throw new Error("POST_ID_AND_COMMENT_ID_REQUIRED");
+    if (!text) throw new Error("TEXT_REQUIRED");
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) throw new Error("COMMENT_NOT_FOUND");
+
+    if (!comment.author.equals(userId) && userRole !== "admin") {
+        throw new Error("UNAUTHORIZED_TO_UPDATE_COMMENT");
+    }
+
+    comment.text = text;
+    await comment.save();
+
+    await comment.populate("author", "name username profile.profilePhoto");
+
+    return comment;
+};
+
+
+const deleteCommentService = async (req) => {
+    const { postId, commentId } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    if (!postId || !commentId) throw new Error("POST_ID_AND_COMMENT_ID_REQUIRED");
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) throw new Error("COMMENT_NOT_FOUND");
+
+    if (!comment.author.equals(userId) && userRole !== "admin") {
+        throw new Error("UNAUTHORIZED_TO_DELETE_COMMENT");
+    }
+
+    await Comment.findByIdAndDelete(commentId);
+
+    return { message: "Comment deleted successfully" };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 module.exports = {
     getPostsServices,
-    getMyPostsServices,
     getUserPostsServices,
+
+    getMyPostsServices,
+    getMySavedPostsService,
+
     getPostServices,
     createPostServices,
     updatePostServices,
     deletePostServices,
+
     savePostServices,
     reactPostServices,
+
+    getCommentsService,
+    createCommentService,
+    updateCommentService,
+    deleteCommentService,
 } 

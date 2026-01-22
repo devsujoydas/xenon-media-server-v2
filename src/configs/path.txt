@@ -1,0 +1,41 @@
+auth/
+signup -> {{baseURL}}/auth/signup
+signin -> {{baseURL}}/auth/signin
+logout -> {{baseURL}}/auth/logout
+refresh ->{{baseURL}}/auth/refresh
+
+
+password/
+request-reset -> {{baseURL}}/password/request-reset
+verify-reset-token -> {{baseURL}}/password/verify-reset-token?token={{passResetToken}}
+reset-password -> {{baseURL}}/password/reset-password?token={{passResetToken}}
+
+
+user/
+Get All Users -> {{baseURL}}/users
+Get Any User  -> {{baseURL}}/users?search=&role=
+active-status -> {{baseURL}}/users/active-status
+Profile       -> {{baseURL}}/users/profile
+Update Profile -> {{baseURL}}/users/profile
+Delete Profile -> {{baseURL}}/users/profile
+
+
+post/
+Get All Post       -> {{baseURL}}/posts?search=
+Get Any User Posts -> {{baseURL}}/posts/user/{{userId}}
+Get My Posts       -> {{baseURL}}/posts/me
+Get My SavedPosts  -> {{baseURL}}/posts/me/saved
+Get Post           -> {{baseURL}}/posts/{{postId}}
+
+Create Post -> {{baseURL}}/posts
+Update Post -> {{baseURL}}/posts/{{postId}}
+Delete Post -> {{baseURL}}/posts/{{postId}}
+Like Post -> {{baseURL}}/posts/{{postId}}/Like
+Save Post -> {{baseURL}}/posts/{{postId}}/save
+
+
+Comments/
+Get Comment -> {{baseURL}}/posts/{{postId}}/comments
+Create Comment -> {{baseURL}}/posts/{{postId}}/comment
+Update Comment -> {{baseURL}}/posts/{{postId}}/{{commentId}}
+Delete Comment -> {{baseURL}}/posts/{{postId}}/{{commentId}}

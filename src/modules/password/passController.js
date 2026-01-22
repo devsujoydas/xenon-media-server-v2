@@ -12,14 +12,14 @@ const requestPasswordReset = async (req, res) => {
 
 const verifyResetToken = async (req, res) => {
   try {
-    const message = await verifyResetTokenService(req.query.token);
+    const message = await verifyResetTokenService(req);
     res.status(200).json({ message });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
 
-const resetPassword = async (req, res) => {
+const resetPassword = async (req, res) => { 
   try {
     const { token } = req.query;
     const { newPassword, confirmNewPassword } = req.body;
@@ -32,7 +32,7 @@ const resetPassword = async (req, res) => {
 
 
 module.exports = {
-  requestPasswordReset, 
-  verifyResetToken, 
+  requestPasswordReset,
+  verifyResetToken,
   resetPassword
 }

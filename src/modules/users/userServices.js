@@ -3,7 +3,7 @@ const Post = require("../posts/postModel");
 const User = require("./userModel");
 
 
-const getAllUsersServices = async (req) => {
+const getAllUsersService = async (req) => {
   const id = req.user?.id;
   if (!id) throw new Error("USER_ID_REQUIRED");
 
@@ -28,7 +28,7 @@ const getAllUsersServices = async (req) => {
   return { users, userCounts };
 };
 
-const getUserServices = async (req, res) => {
+const getProfileService = async (req) => {
   if (!req.user) throw new Error("UNAUTHORIZE");
 
   const user = await User.findById(req.user.id).select("-refreshToken");
@@ -37,7 +37,7 @@ const getUserServices = async (req, res) => {
   return user
 }
 
-const updateUserServices = async (req) => {
+const updateProfileService = async (req) => {
   const { name, username, profile, contactInfo, socialLinks, location } = req.body;
 
   const id = req.user?.id;
@@ -74,7 +74,7 @@ const updateUserServices = async (req) => {
   return updatedUser;
 };
 
-const deleteUserService = async (req) => {
+const deleteProfileService = async (req) => {
   const id = req.user.id
 
   const user = await User.findById(id);
@@ -95,8 +95,8 @@ const deleteUserService = async (req) => {
 };
 
 
-const userTimers = new Map();
 
+const userTimers = new Map();
 const activeStatusServicess = async (userId) => {
   if (!userId) throw new Error("USER_ID_REQUIRED");
 
@@ -139,4 +139,11 @@ const activeStatusServicess = async (userId) => {
 
 
 
-module.exports = { getAllUsersServices, getUserServices, activeStatusServicess, updateUserServices, deleteUserService }
+module.exports = {
+  getAllUsersService,
+  getProfileService,
+  updateProfileService,
+  deleteProfileService,
+
+  activeStatusServicess,
+}

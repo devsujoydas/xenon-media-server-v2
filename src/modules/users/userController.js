@@ -1,11 +1,16 @@
-const User = require("./userModel");
-const { getUserServices, updateUserServices, deleteUserService, getAllUsersServices, activeStatusServicess } = require("./userServices");
+ const {
+  getAllUsersService,
+  getProfileService,
+  updateProfileService,
+  deleteProfileService,
+  activeStatusServicess,
+} = require("./userServices");
 
 
 
 const getUsers = async (req, res) => {
   try {
-    const { users, userCounts } = await getAllUsersServices(req)
+    const { users, userCounts } = await getAllUsersService(req)
     res.json({ userCounts, users });
   } catch (error) {
     console.error(error);
@@ -13,9 +18,9 @@ const getUsers = async (req, res) => {
   }
 }
 
-const getUser = async (req, res) => {
+const getProfile = async (req, res) => {
   try {
-    const user = await getUserServices(req) 
+    const user = await getProfileService(req)
     res.status(200).json(user);
   } catch (error) {
     if (error.message === "UNAUTHORIZE") {
@@ -28,9 +33,9 @@ const getUser = async (req, res) => {
   }
 }
 
-const updateUser = async (req, res) => {
+const updateProfile = async (req, res) => {
   try {
-    const updatedUser = await updateUserServices(req);
+    const updatedUser = await updateProfileService(req);
 
     return res.status(200).json({
       message: "Profile updated successfully",
@@ -70,9 +75,9 @@ const updateUser = async (req, res) => {
   }
 };
 
-const deleteUser = async (req, res) => {
+const deleteProfile = async (req, res) => {
   try {
-    const result = await deleteUserService(req);
+    const result = await deleteProfileService(req);
     return res.status(200).json({
       message: "Account deleted successfully",
       ...result,
@@ -95,7 +100,7 @@ const activeStatus = async (req, res) => {
 
 
 
- 
+
 
   const userId = req.user.id;
 
@@ -123,8 +128,8 @@ const activeStatus = async (req, res) => {
 
 module.exports = {
   getUsers,
-  getUser,
+  getProfile,
+  updateProfile,
+  deleteProfile,
   activeStatus,
-  updateUser,
-  deleteUser,
 };

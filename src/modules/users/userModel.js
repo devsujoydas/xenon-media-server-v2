@@ -8,16 +8,12 @@ const userSchema = new mongoose.Schema({
 
   activeStatus: {
     online: { type: Boolean, default: false },
-    lastActiveAt: { type: Date ,default: Date.now},
+    lastActiveAt: { type: Date, default: Date.now },
   },
 
-  refreshToken: { type: String },
+  refreshToken: { type: String, select: false },
 
   password: { type: String, required: true, minlength: 6, select: false },
-  passwordReset: {
-    token: { type: String },
-    expires: { type: Date },
-  },
 
   profile: {
     bio: { type: String, default: "" },
@@ -61,7 +57,13 @@ const userSchema = new mongoose.Schema({
   { timestamps: true }
 );
 
-userSchema.index({ name: "text", email: "text", role: "text" });
+userSchema.index({
+  name: "text",
+  email: "text",
+  role: "text",
+  "passwordReset.token": 1,
+  "passwordReset.expires": 1
+});
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;

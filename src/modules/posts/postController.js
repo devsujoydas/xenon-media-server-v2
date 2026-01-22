@@ -1,4 +1,4 @@
-const { getPostsServices, getPostServices, createPostServices, deletePostServices, updatePostServices, reactPostServices, getMyPostsServices, getUserPostsServices, savePostServices } = require("./postServices");
+const { getPostsServices, getPostServices, createPostServices, deletePostServices, updatePostServices, reactPostServices, getMyPostsServices, getUserPostsServices, savePostServices, getMySavedPostsService, deleteCommentService, createCommentService, getCommentsService, updateCommentService } = require("./postServices");
 
 
 
@@ -122,17 +122,80 @@ const reactPost = async (req, res) => {
     }
 }
 
+const getMySavedPosts = async (req, res) => {
+    try {
+        const { totalPosts, posts } = await getMySavedPostsService(req)
+        res.json({ totalPosts, posts })
+    } catch (error) {
+        if (error.message === "POST_NOT_FOUND") {
+            return res.status(400).json({ message: "Post not found" });
+        }
+        console.error("Error liking post:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+
+
+
+// comments 
+const getComments = async (req, res) => {
+    try {
+        const comments = await getCommentsService(req);
+        res.status(200).json(comments);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+}
+
+
+const createComment = async (req, res) => {
+    try {
+        const comment = await createCommentService(req);
+        res.status(201).json(comment);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+}
+
+const updateComment = async (req, res) => {
+    try {
+        const updatedComment = await updateCommentService(req);
+        res.status(200).json(updatedComment);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+
+const deleteComment = async (req, res) => {
+    try {
+        const result = await deleteCommentService(req);
+        res.status(200).json(result);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+
+
+
 
 module.exports = {
     getPosts,
-    getMyPosts,
     getUserPosts,
+    
+    getMyPosts,
+    getMySavedPosts,
+    
     getPost,
-
     createPost,
     updatePost,
     deletePost,
 
     savePost,
     reactPost,
+
+    getComments,
+    createComment,
+    updateComment,
+    deleteComment,
 }
