@@ -116,13 +116,15 @@ const updatePostServices = async (req) => {
 }
 
 const deletePostServices = async (req) => {
-    const postId = req.params.id;
+    const postId = req.params.postId;
+    const userId = req.user.id;
+    const userRole = req.user.role;
 
     const post = await Post.findById(postId);
     if (!post) throw new Error("POST_NOT_FOUND");
 
-    if (!post.author === req.user.id && req.user.role !== "admin") {
-        throw new Error("INVALID_POST_AUTHOR");
+    if (!post.author.equals(userId) && userRole !== "admin") {
+        throw new Error("UNAUTHORIZED_TO_DELETE_POST");
     }
 
     await User.updateMany(
@@ -130,8 +132,13 @@ const deletePostServices = async (req) => {
         { $pull: { savePosts: postId } }
     );
 
-    const result = await Post.findByIdAndDelete(postId);
-    return result;
+    const deletedPost = await Post.findByIdAndDelete(postId);
+
+    return {
+        success: true,
+        message: "Post deleted successfully",
+        data: deletedPost,
+    };
 };
 
 const savePostServices = async (req) => {
@@ -247,7 +254,9 @@ const deleteCommentService = async (req) => {
     const userId = req.user.id;
     const userRole = req.user.role;
 
-    if (!postId || !commentId) throw new Error("POST_ID_AND_COMMENT_ID_REQUIRED");
+    if (!postId || !commentId) {
+        throw new Error("POST_ID_AND_COMMENT_ID_REQUIRED");
+    }
 
     const comment = await Comment.findById(commentId);
     if (!comment) throw new Error("COMMENT_NOT_FOUND");
@@ -258,7 +267,10 @@ const deleteCommentService = async (req) => {
 
     await Comment.findByIdAndDelete(commentId);
 
-    return { message: "Comment deleted successfully" };
+    return {
+        success: true,
+        message: "Comment deleted successfully",
+    };
 };
 
 

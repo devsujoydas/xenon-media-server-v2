@@ -18,6 +18,7 @@ This project follows a **clean service‑controller architecture**, supports aut
 
 ---
 
+
 ## 📁 Project Folder Structure
 
 ```
@@ -70,8 +71,11 @@ src/
 │  └─ emailTemplates/
 │     └─ passwordResetTemplate.js
 │
-├─ app.js
-└─ server.js
+├── .env
+├── app.js
+├── package-lock.json
+├── package.json
+└── server.js
 ```
 
 ---
@@ -135,9 +139,23 @@ src/
 | PATCH  | `/api/v2/posts/:postId/:commentId` | Update a comment       |
 | DELETE | `/api/v2/posts/:postId/:commentId` | Delete a comment       |
 
-> 🔒 Only **comment author or admin** can update/delete comments
 
 ---
+
+## 👑 Admin 
+
+> Only accessible by admin users
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| PATCH | `/api/v2/admin/make/{{userId}}` | Promote a user to admin |
+| PATCH | `/api/v2/admin/remove/{{userId}}` | Remove admin role from a user |
+| DELETE | `/api/v2/admin/users/{{userId}}` | Delete any user |
+| DELETE | `/api/v2/admin/posts/{{postId}}` | Delete any post |
+| DELETE | `/api/v2/admin/posts/{{postId}}/{{commentId}}` | Delete any comment |
+
+---
+
 
 ## 🧠 Design Decisions
 
