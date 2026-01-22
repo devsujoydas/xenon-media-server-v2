@@ -1,8 +1,31 @@
-const { getPostsServices, getPostServices, createPostServices, deletePostServices, updatePostServices, reactPostServices } = require("./postServices");
+const { getPostsServices, getPostServices, createPostServices, deletePostServices, updatePostServices, reactPostServices, getMyPostsServices, getUserPostsServices, savePostServices } = require("./postServices");
+
+
+
+
 
 const getPosts = async (req, res) => {
     try {
         const { totalPosts, posts } = await getPostsServices(req);
+        res.status(200).json({ totalPosts, posts });
+    } catch (error) {
+        console.error("Error fetching posts:", error);
+        res.status(500).json({ message: "Failed to fetch posts", error: error.message });
+    }
+};
+const getMyPosts = async (req, res) => {
+    try {
+        const { totalPosts, posts } = await getMyPostsServices(req);
+
+        res.status(200).json({ totalPosts, posts });
+    } catch (error) {
+        console.error("Error fetching posts:", error);
+        res.status(500).json({ message: "Failed to fetch posts", error: error.message });
+    }
+};
+const getUserPosts = async (req, res) => {
+    try {
+        const { totalPosts, posts } = await getUserPostsServices(req);
 
         res.status(200).json({ totalPosts, posts });
     } catch (error) {
@@ -12,19 +35,19 @@ const getPosts = async (req, res) => {
 };
 
 
-const getPost = async (req, res) => {
-  try {
-    const post = await getPostServices(req);
-    res.status(200).json({ post });
-  } catch (error) {
-    if (error.message === "POST_NOT_FOUND") {
-      return res.status(404).json({ message: "Post not found" });
-    }
-    console.error("Error fetching post:", error);
-    res.status(500).json({ message: "Failed to fetch post" });
-  }
-};
 
+const getPost = async (req, res) => {
+    try {
+        const post = await getPostServices(req);
+        res.status(200).json({ post });
+    } catch (error) {
+        if (error.message === "POST_NOT_FOUND") {
+            return res.status(404).json({ message: "Post not found" });
+        }
+        console.error("Error fetching post:", error);
+        res.status(500).json({ message: "Failed to fetch post" });
+    }
+};
 
 const createPost = async (req, res) => {
     try {
@@ -49,6 +72,9 @@ const updatePost = async (req, res) => {
         if (error.message === "POST_NOT_FOUND") {
             return res.status(400).json({ message: "Post not found" });
         }
+        if (error.message === "INVALID_POST_AUTHOR") {
+            return res.status(400).json({ message: "You are not the author of this post for update" });
+        }
         console.error("Error updating post:", error);
         res.status(500).json({ message: "Failed to update post" });
     }
@@ -71,7 +97,18 @@ const deletePost = async (req, res) => {
     }
 }
 
-
+const savePost = async (req, res) => {
+    try {
+        const { message } = await savePostServices(req)
+        res.json({ message })
+    } catch (error) {
+        if (error.message === "POST_NOT_FOUND") {
+            return res.status(400).json({ message: "Post not found" });
+        }
+        console.error("Error Saving post:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
 const reactPost = async (req, res) => {
     try {
         const { message } = await reactPostServices(req)
@@ -88,9 +125,14 @@ const reactPost = async (req, res) => {
 
 module.exports = {
     getPosts,
+    getMyPosts,
+    getUserPosts,
     getPost,
+
     createPost,
     updatePost,
     deletePost,
+
+    savePost,
     reactPost,
 }

@@ -6,10 +6,14 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true, },
   role: { type: String, enum: ["user", "admin"], default: "user", index: true, },
 
-  onlineStatus: { type: Boolean, default: false },
+  activeStatus: {
+    online: { type: Boolean, default: false },
+    lastActiveAt: { type: Date ,default: Date.now},
+  },
+
   refreshToken: { type: String },
 
-  password: { type: String, required: true, minlength: 6, select: false},
+  password: { type: String, required: true, minlength: 6, select: false },
   passwordReset: {
     token: { type: String },
     expires: { type: Date },

@@ -21,7 +21,7 @@ backend/
 │   │   │   ├── passServices.js
 │   │   │   └── passController.js
 │   │   ├── post/
-│   │   │   ├── postModel.js
+│   │   │   ├── Post.js
 │   │   │   ├── postRoutes.js
 │   │   │   ├── postServices.js
 │   │   │   └── postController.js

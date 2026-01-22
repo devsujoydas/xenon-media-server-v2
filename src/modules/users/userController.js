@@ -1,9 +1,5 @@
-const sharp = require("sharp");
-const axios = require("axios");
-
 const User = require("./userModel");
-const postModel = require("../posts/postModel");
-const { getUserServices, updateUserServices, deleteUserService, getAllUsersServices } = require("./userServices");
+const { getUserServices, updateUserServices, deleteUserService, getAllUsersServices, activeStatusServicess } = require("./userServices");
 
 
 
@@ -19,10 +15,15 @@ const getUsers = async (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    const user = getUserServices(req, res)
+    const user = await getUserServices(req) 
     res.status(200).json(user);
   } catch (error) {
-    console.error(error);
+    if (error.message === "UNAUTHORIZE") {
+      return res.status(400).json({ message: "Unauthorized" });
+    }
+    if (error.message === "USER_NOT_FOUND") {
+      return res.status(400).json({ message: "User not found" });
+    }
     res.status(500).json({ message: "Server error" });
   }
 }
@@ -71,7 +72,7 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    const result = await deleteUserService(req.user._id);
+    const result = await deleteUserService(req);
     return res.status(200).json({
       message: "Account deleted successfully",
       ...result,
@@ -89,39 +90,31 @@ const deleteUser = async (req, res) => {
   }
 };
 
-
-
-
-
-
-const userTimers = new Map();
 const activeStatus = async (req, res) => {
-  const email = req.query.email;
-  if (!email) return res.status(400).json({ message: "Email is required" });
+
+
+
+
+ 
+
+  const userId = req.user.id;
 
   try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    if (!user.onlineStatus) {
-      await User.updateOne({ email }, { $set: { onlineStatus: true } });
-      console.log(`🟢 ${email} marked online`);
-    }
-
-    if (userTimers.has(email)) clearTimeout(userTimers.get(email));
-
-    const timeout = setTimeout(async () => {
-      await User.updateOne({ email }, { $set: { onlineStatus: false } });
-      userTimers.delete(email);
-    }, 4000);
-
-    userTimers.set(email, timeout);
-    res.status(200).json({ status: "online" });
+    const result = await activeStatusServicess(userId);
+    res.status(200).json(result);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    if (err.message === "USER_ID_REQUIRED") {
+      return res.status(400).json({ message: err.message });
+    }
+    if (err.message === "USER_NOT_FOUND") {
+      return res.status(404).json({ message: err.message });
+    }
+    res.status(500).json({ message: "SERVER_ERROR" });
   }
-}
+};
+
+
 
 
 

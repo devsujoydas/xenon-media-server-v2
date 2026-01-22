@@ -7,13 +7,14 @@ const isVerifyUser = require("../../middlewares/verifyUser");
 
 
 router.get("/",isVerifyUser, getUsers);
+
 router.get("/profile",isVerifyUser, getUser);
 router.put("/profile",isVerifyUser, updateUser);
 router.delete("/profile",isVerifyUser, deleteUser);
 
  
 
-router.post("/activeStatus", activeStatus);
+router.post("/active-status",isVerifyUser, activeStatus);
 
 
 module.exports = router;

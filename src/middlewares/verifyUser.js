@@ -1,11 +1,11 @@
-const verifyTokenAndGetUser = require("../utils/verifyToken");
+const verifyToken = require("../utils/verifyToken");
 
 const isVerifyUser = async (req, res, next) => {
-  
-  const { user, error } = await verifyTokenAndGetUser(req);
+
+  const { decoded, error } = await verifyToken(req);
   if (error) return res.status(error.status).json({ message: error.message });
 
-  req.user = user;
+  req.user = decoded;
   next();
 };
 
