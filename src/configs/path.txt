@@ -37,5 +37,5 @@ Save Post -> {{baseURL}}/posts/{{postId}}/save
 Comments/
 Get Comment -> {{baseURL}}/posts/{{postId}}/comments
 Create Comment -> {{baseURL}}/posts/{{postId}}/comment
-Update Comment -> {{baseURL}}/posts/{{postId}}/{{commentId}}
-Delete Comment -> {{baseURL}}/posts/{{postId}}/{{commentId}}
+Update Comment -> {{baseURL}}/posts/{{postId}}/comment/{{commentId}}
+Delete Comment -> {{baseURL}}/posts/{{postId}}/comment/{{commentId}}

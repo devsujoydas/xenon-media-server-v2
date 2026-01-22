@@ -25,8 +25,8 @@ router.put("/:id/save", isVerifyUser, savePost);
 // Comments
 router.get("/:postId/comments", getComments)
 router.post("/:postId/comment", isVerifyUser, createComment)
-router.put("/:postId/:commentId", isVerifyUser, updateComment);
-router.delete("/:postId/:commentId", isVerifyUser, deleteComment)
+router.put("/:postId/comments/:commentId", isVerifyUser, updateComment);
+router.delete("/:postId/comments/:commentId", isVerifyUser, deleteComment)
 
  
 

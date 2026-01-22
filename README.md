@@ -1,218 +1,182 @@
- 
-# Xenon Media Server v2 🚀
+# 🚀 Xenon Media v2 – Backend API
 
-[![Node.js](https://img.shields.io/badge/node-v18-green)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/express-5.1.0-blue)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/mongodb-6.20.0-green)](https://www.mongodb.com/)
+A scalable, modular, and production‑ready backend API for a social media–style application built with **Node.js, Express, MongoDB, and JWT authentication**.
 
-A **MERN backend** server for the Xenon Media application, handling authentication, user management, posts, friendships, and password reset functionality.  
-Built with **Node.js, Express, MongoDB**, and **JWT-based authentication**.
-
-
-
-## 📂 Project Structure
- 
-backend/
-│
-├── src/
-│   ├── config/               # Configuration files
-│   │   ├── config.js         # App config (PORT, JWT secret, etc.)
-│   │   └── db.js             # MongoDB connection
-│   │
-│   ├── middlewares/          # Express middlewares
-│   │   ├── verifyAdmin.js
-│   │   └── verifyUser.js
-│   │
-│   ├── modules/              # App modules
-│   │   ├── auth/             # Authentication
-│   │   │   ├── authController.js
-│   │   │   ├── authRoutes.js
-│   │   │   └── authServices.js
-│   │   │
-│   │   ├── friend/           # Friend management
-│   │   │   ├── friendModel.js
-│   │   │   ├── friendRoutes.js
-│   │   │   ├── friendServices.js
-│   │   │   └── friendController.js
-│   │   │
-│   │   ├── password/         # Password reset
-│   │   │   ├── passRoutes.js
-│   │   │   ├── passServices.js
-│   │   │   └── passController.js
-│   │   │
-│   │   ├── post/             # Post management
-│   │   │   ├── Post.js
-│   │   │   ├── postRoutes.js
-│   │   │   ├── postServices.js
-│   │   │   └── postController.js
-│   │   │
-│   │   └── user/             # User management
-│   │       ├── userModel.js
-│   │       ├── userRoutes.js
-│   │       ├── userServices.js
-│   │       └── userController.js
-│   │
-│   └── utils/                # Utility functions
-│       ├── createToken.js
-│       ├── sendEmail.js
-│       ├── verifyToken.js
-│       └── emailTemplates/
-│           └── passwordResetTemplate.js
-│
-├── .env                      # Environment variables
-├── app.js                     # Express app & routes
-├── server.js                  # Entry point
-├── package.json               # Project dependencies & scripts
-└── package-lock.json
-
-
-
-
-
-## ⚡ Features
-
-- **JWT Authentication** (access + refresh tokens)
-- **User management** (profile, social links, location updates)
-- **Password reset** via email with token/OTP
-- **Friend system** (request, confirm, cancel)
-- **Posts** (create, fetch, delete)
-- **Role-based access control** (User/Admin)
-- **File uploads** support with Multer and Sharp
-- **Secure cookies** for refresh tokens
-- Clean REST API design
+This project follows a **clean service‑controller architecture**, supports authentication, posts, comments, likes, saved posts, password reset via email, and admin features.
 
 ---
 
-## 🛠 Installation
+## 🧱 Tech Stack
 
-1. Clone the repository:
+* **Node.js**
+* **Express.js**
+* **MongoDB + Mongoose**
+* **JWT (Access & Refresh Tokens)**
+* **bcryptjs** (password hashing)
+* **Nodemailer** (email service)
+* **RESTful API architecture**
 
-```bash
-git clone <your-repo-url>
-cd xenon-media-server-v2
-````
+---
 
-2. Install dependencies:
+## 📁 Project Folder Structure
 
-```bash
-npm install
+```
+node_modules/
+src/
+├─ configs/
+│  ├─ db.js
+│  └─ config.js
+│
+├─ middlewares/
+│  ├─ verifyAdmin.js
+│  └─ verifyUser.js
+│
+├─ modules/
+│  ├─ auth/
+│  │  ├─ authRoutes.js
+│  │  ├─ authControllers.js
+│  │  └─ authServices.js
+│  │
+│  ├─ password/
+│  │  ├─ passwordRoutes.js
+│  │  ├─ passwordControllers.js
+│  │  └─ passwordServices.js
+│  │
+│  ├─ users/
+│  │  ├─ usersModel.js
+│  │  ├─ usersRoutes.js
+│  │  ├─ usersControllers.js
+│  │  └─ usersServices.js
+│  │
+│  ├─ admin/
+│  │  ├─ adminRoutes.js
+│  │  ├─ adminControllers.js
+│  │  └─ adminServices.js
+│  │
+│  └─ posts/
+│     ├─ postModel.js
+│     ├─ commentModel.js
+│     ├─ postRoutes.js
+│     ├─ postControllers.js
+│     └─ postServices.js
+│
+├─ utils/
+│  ├─ sendEmail.js
+│  ├─ fetchPosts.js
+│  ├─ shuffleArray.js
+│  ├─ verifyToken.js
+│  ├─ verifyPassResetToken.js
+│  ├─ createTokens.js
+│  └─ emailTemplates/
+│     └─ passwordResetTemplate.js
+│
+├─ app.js
+└─ server.js
 ```
 
-3. Create a `.env` file in the root:
+---
 
-```env
+## 🔐 Authentication Routes
+
+| Method | Endpoint               | Description          |
+| ------ | ---------------------- | -------------------- |
+| POST   | `/api/v2/auth/signup`  | Register a new user  |
+| POST   | `/api/v2/auth/signin`  | Login user           |
+| POST   | `/api/v2/auth/logout`  | Logout user          |
+| POST   | `/api/v2/auth/refresh` | Refresh access token |
+
+---
+
+## 🔑 Password Reset Routes
+
+| Method | Endpoint                                     | Description                  |
+| ------ | -------------------------------------------- | ---------------------------- |
+| POST   | `/api/v2/password/request-reset`             | Request password reset email |
+| GET    | `/api/v2/password/verify-reset-token?token=` | Verify reset token           |
+| POST   | `/api/v2/password/reset-password?token=`     | Reset password               |
+
+---
+
+## 👤 User Routes
+
+| Method | Endpoint                      | Description                         |
+| ------ | ----------------------------- | ----------------------------------- |
+| GET    | `/api/v2/users`               | Get all users (search, role filter) |
+| GET    | `/api/v2/users/profile`       | Get logged‑in user profile          |
+| PATCH  | `/api/v2/users/profile`       | Update profile                      |
+| DELETE | `/api/v2/users/profile`       | Delete profile                      |
+| PATCH  | `/api/v2/users/active-status` | Update active status                |
+
+---
+
+## 📝 Post Routes
+
+| Method | Endpoint                     | Description                      |
+| ------ | ---------------------------- | -------------------------------- |
+| GET    | `/api/v2/posts`              | Get all posts (search supported) |
+| GET    | `/api/v2/posts/me`           | Get my posts                     |
+| GET    | `/api/v2/posts/user/:userId` | Get any user posts               |
+| GET    | `/api/v2/posts/me/saved`     | Get my saved posts               |
+| GET    | `/api/v2/posts/:postId`      | Get single post                  |
+| POST   | `/api/v2/posts`              | Create post                      |
+| PATCH  | `/api/v2/posts/:postId`      | Update post                      |
+| DELETE | `/api/v2/posts/:postId`      | Delete post                      |
+| PATCH  | `/api/v2/posts/:postId/like` | Like or unlike post              |
+| PATCH  | `/api/v2/posts/:postId/save` | Save or unsave post              |
+
+---
+
+## 💬 Comment Routes
+
+| Method | Endpoint                           | Description            |
+| ------ | ---------------------------------- | ---------------------- |
+| GET    | `/api/v2/posts/:postId/comments`   | Get comments of a post |
+| POST   | `/api/v2/posts/:postId/comment`    | Create a comment       |
+| PATCH  | `/api/v2/posts/:postId/:commentId` | Update a comment       |
+| DELETE | `/api/v2/posts/:postId/:commentId` | Delete a comment       |
+
+> 🔒 Only **comment author or admin** can update/delete comments
+
+---
+
+## 🧠 Design Decisions
+
+* Comments are stored in a **separate collection** (not embedded)
+* Posts do **not store comment arrays** → improves performance
+* Comments are fetched dynamically using `postId`
+* JWT is used instead of DB‑stored reset tokens
+* Controllers are thin, logic lives in services
+
+---
+
+## ⚙️ Environment Variables
+
+``` 
 PORT=5000
-MONGO_URI=your_mongo_connection_string
+MONGO_URI=your_mongo_connection
 JWT_SECRET=your_jwt_secret
-EMAIL_USER=your_email@example.com
+ACCESS_TOKEN_EXPIRESIN=your_access_expiresin
+REFRESH_TOKEN_EXPIRESIN=your_refresh_expiresin
+FRONTEND_URL=http://localhost:3000
+EMAIL_USER=example@email.com
 EMAIL_PASS=your_email_password
 ```
 
 ---
 
-## 🚀 Running the Server
+## 🧪 Status
 
-### Development
-
-```bash
-npm run dev
-```
-
-### Production
-
-```bash
-npm start
-```
-
-Server runs on the port defined in `.env` (default `5000`).
+✅ Actively developed
+✅ Clean architecture
+✅ Scalable & production‑ready
 
 ---
 
-## 🔗 API Endpoints
+## ✨ Author
 
-### **Auth**
-
-| Method | Endpoint        | Description          |
-| ------ | --------------- | -------------------- |
-| POST   | `/auth/signup`  | Register a new user  |
-| POST   | `/auth/login`   | Login user           |
-| POST   | `/auth/logout`  | Logout user          |
-| GET    | `/auth/refresh` | Refresh access token |
-
-### **User**
-
-| Method | Endpoint               | Description                |
-| ------ | ---------------------- | -------------------------- |
-| PUT    | `/user/profile/update` | Update profile (protected) |
-
-### **Friend**
-
-| Method | Endpoint          | Description            |
-| ------ | ----------------- | ---------------------- |
-| POST   | `/friend/request` | Send friend request    |
-| PUT    | `/friend/confirm` | Confirm friend request |
-| DELETE | `/friend/cancel`  | Cancel friend request  |
-
-### **Post**
-
-| Method | Endpoint       | Description      |
-| ------ | -------------- | ---------------- |
-| POST   | `/post/create` | Create new post  |
-| GET    | `/post/:id`    | Fetch post by ID |
-| DELETE | `/post/:id`    | Delete post      |
-
-### **Password**
-
-| Method | Endpoint           | Description               |
-| ------ | ------------------ | ------------------------- |
-| POST   | `/password/forgot` | Request password reset    |
-| POST   | `/password/reset`  | Reset password with token |
+**Sujoy Das**
+Backend Developer | MERN Stack Enthusiast
 
 ---
 
-## 🧰 Dependencies
-
-* [Express](https://expressjs.com/)
-* [Mongoose](https://mongoosejs.com/)
-* [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
-* [bcrypt](https://www.npmjs.com/package/bcrypt)
-* [cookie-parser](https://www.npmjs.com/package/cookie-parser)
-* [cors](https://www.npmjs.com/package/cors)
-* [dotenv](https://www.npmjs.com/package/dotenv)
-* [nodemailer](https://nodemailer.com/)
-* [multer](https://www.npmjs.com/package/multer)
-* [sharp](https://www.npmjs.com/package/sharp)
-* [axios](https://www.npmjs.com/package/axios)
-
----
-
-## ⚡ Notes
-
-* All **protected routes** require JWT authentication.
-* Handles **partial updates** for user profile — sending only fields to update.
-* Image uploads (profile/cover) handled separately via Multer.
-* Designed to work with a **React frontend**.
-
----
-
-## 📄 License
-
-ISC
-
----
-
-```
-
-This version:  
-
-- Adds **badges** for Node, Express, MongoDB  
-- Uses **tables for endpoints** (easy to read)  
-- Notes **partial updates and protected routes**  
-- Separates features, installation, and API docs clearly  
-
----
-
-If you want, I can also add a **“Frontend request examples” section** with **JSON payloads and sample responses** for each endpoint — it makes it very developer-friendly.  
-
-Do you want me to do that?
-```
+If you like this project, don’t forget to ⭐ the repository!
