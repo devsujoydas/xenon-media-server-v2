@@ -40,15 +40,18 @@ const userSchema = new mongoose.Schema({
     postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" }
   }],
 
-  friendRequests: [{
+  receivedRequests: [{
+    _id: false,
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     requestedAt: { type: Date, default: Date.now }
   }],
   sentRequests: [{
+    _id: false,
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     requestedAt: { type: Date, default: Date.now }
   }],
   myFriends: [{
+    _id: false,
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     since: { type: Date, default: Date.now }
   }],

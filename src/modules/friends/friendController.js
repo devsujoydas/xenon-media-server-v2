@@ -1,189 +1,240 @@
+const {
+  getMyFriendsService,
+  getRequestsService,
+  getSentRequestsService,
+  getYouMayKnowService,
+
+  addFriendService,
+  confirmFriendService,
+  cancelSentRequestService,
+  cancelReceivedRequestService,
+  unfriendService
+} = require("./friendServices");
 
 
 
-const getFriend = async (req, res) => {
-    try {
-        const { username } = req.params;
-        const friend = await userModel.findOne({ username }).populate("posts");
-        if (!friend) return res.status(404).json({ message: "Friend not found" });
 
-        res.json(friend);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
-    }
-}
 
 const myFriends = async (req, res) => {
-    try {
-        const email = req.query.email;
-        if (!email) return res.status(400).send("Email missing");
-
-        const user = await userModel.findOne({ email }).populate("myFriends");
-        if (!user) return res.status(404).send("User not found");
-
-        res.json(user.myFriends || []);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
-    }
+  try {
+    const result = getMyFriendsService(req)
+    res.send(result)
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 }
 
 const requests = async (req, res) => {
-    try {
-        const email = req.query.email;
-        if (!email) return res.status(400).send("Email missing");
+  try {
+    const email = req.query.email;
+    if (!email) return res.status(400).send("Email missing");
 
-        const user = await userModel.findOne({ email }).populate("friendRequests");
-        if (!user) return res.status(404).send("User not found");
+    const user = await userModel.findOne({ email }).populate("receivedRequests");
+    if (!user) return res.status(404).send("User not found");
 
-        res.json(user.friendRequests || []);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
-    }
+    res.json(user.receivedRequests || []);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
 }
 
-const sentrequest = async (req, res) => {
-    try {
-        const email = req.query.email;
-        if (!email) return res.status(400).send("Email missing");
+const sentrequests = async (req, res) => {
+  try {
+    const email = req.query.email;
+    if (!email) return res.status(400).send("Email missing");
 
-        const user = await userModel.findOne({ email }).populate("sentRequests");
-        if (!user) return res.status(404).send("User not found");
+    const user = await userModel.findOne({ email }).populate("sentRequests");
+    if (!user) return res.status(404).send("User not found");
 
-        res.json(user.sentRequests || []);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
-    }
+    res.json(user.sentRequests || []);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
 }
 
 const youMayKnow = async (req, res) => {
-    try {
-        const email = req.query.email;
-        if (!email) return res.status(400).send("Email missing");
+  try {
+    const email = req.query.email;
+    if (!email) return res.status(400).send("Email missing");
 
-        const user = await userModel.findOne({ email }).populate("myFriends friendRequests sentRequests");
-        if (!user) return res.status(404).send("User not found");
+    const user = await userModel.findOne({ email }).populate("myFriends receivedRequests sentRequests");
+    if (!user) return res.status(404).send("User not found");
 
-        const excludeIds = [
-            user._id.toString(),
-            ...(user.myFriends || []).map(u => u._id.toString()),
-            ...(user.friendRequests || []).map(u => u._id.toString()),
-            ...(user.sentRequests || []).map(u => u._id.toString())
-        ];
+    const excludeIds = [
+      user._id.toString(),
+      ...(user.myFriends || []).map(u => u._id.toString()),
+      ...(user.receivedRequests || []).map(u => u._id.toString()),
+      ...(user.sentRequests || []).map(u => u._id.toString())
+    ];
 
-        const allUsers = await userModel.find();
-        const youMayKnow = allUsers.filter(u => !excludeIds.includes(u._id.toString()));
+    const allUsers = await userModel.find();
+    const youMayKnow = allUsers.filter(u => !excludeIds.includes(u._id.toString()));
 
-        res.json(youMayKnow);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
-    }
+    res.json(youMayKnow);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
 }
+
+
+
+
+
+
+
+
+
 
 const addFriend = async (req, res) => {
-    try {
-        const { userId, friendId } = req.body;
-        if (!userId || !friendId) return res.status(400).send("Invalid payload");
+  try {
+    const result = await addFriendService(req);
 
-        const userObjId = mongoose.Types.ObjectId(userId);
-        const friendObjId = mongoose.Types.ObjectId(friendId);
-
-        await userModel.updateOne({ _id: friendObjId }, { $addToSet: { friendRequests: userObjId } });
-        await userModel.updateOne({ _id: userObjId }, { $addToSet: { sentRequests: friendObjId } });
-
-        res.json({ message: "Request sent" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
+    if (result.autoConfirmed) {
+      return res.status(200).json({ message: "Friend request auto-confirmed." });
     }
-}
 
-const cancelsentrequest = async (req, res) => {
-    try {
-        const { userId, friendId } = req.body;
-        const userObjId = mongoose.Types.ObjectId(userId);
-        const friendObjId = mongoose.Types.ObjectId(friendId);
+    return res.status(200).json({ message: "Friend request sent." });
 
-        await userModel.updateOne({ _id: userObjId }, { $pull: { sentRequests: friendObjId } });
-        await userModel.updateOne({ _id: friendObjId }, { $pull: { friendRequests: userObjId } });
+  } catch (error) {
+    console.error(error);
 
-        res.json({ message: "Sent request canceled" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
+    switch (error.message) {
+      case "CANNOT_ADD_SELF":
+        return res.status(400).json({ message: "You cannot add yourself as a friend." });
+
+      case "INVALID_FRIEND_ID":
+        return res.status(400).json({ message: "The friend ID is invalid." });
+
+      case "INVALID_FRIEND":
+        return res.status(404).json({ message: "Friend not found." });
+
+      case "REQUEST_ALREADY_SENT":
+        return res.status(409).json({ message: "Friend request already sent." });
+
+      case "ALREADY_FRIEND":
+        return res.status(409).json({ message: "You are already friends." });
+
+      default:
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+  }
+};
 
-const cancelreceivedrequest = async (req, res) => {
-    try {
-        const { userId, friendId } = req.body;
-        const userObjId = mongoose.Types.ObjectId(userId);
-        const friendObjId = mongoose.Types.ObjectId(friendId);
+const cancelSentRequest = async (req, res) => {
+  try {
+    const result = await cancelSentRequestService(req);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
 
-        await userModel.updateOne({ _id: userObjId }, { $pull: { friendRequests: friendObjId } });
-        await userModel.updateOne({ _id: friendObjId }, { $pull: { sentRequests: userObjId } });
+    switch (error.message) {
+      case "INVALID_FRIEND_ID":
+        return res.status(400).json({ message: "The friend ID is invalid." });
 
-        res.json({ message: "Received request declined" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
+      case "INVALID_FRIEND":
+        return res.status(404).json({ message: "Friend not found." });
+
+      case "NO_SENT_REQUEST":
+        return res.status(409).json({ message: "No sent friend request to cancel." });
+
+      default:
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-}
-
+  }
+};
 
 const confirmFriend = async (req, res) => {
-    try {
-        const { userId, friendId } = req.body;
-        if (!userId || !friendId) return res.status(400).send("Missing IDs");
+  try {
+    const result = await confirmFriendService(req);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
 
-        const userObjId = mongoose.Types.ObjectId(userId);
-        const friendObjId = mongoose.Types.ObjectId(friendId);
+    switch (error.message) {
+      case "INVALID_FRIEND_ID":
+        return res.status(400).json({ message: "The friend ID is invalid." });
 
-        await userModel.updateOne(
-            { _id: userObjId },
-            { $pull: { friendRequests: friendObjId }, $addToSet: { myFriends: friendObjId } }
-        );
-        await userModel.updateOne(
-            { _id: friendObjId },
-            { $pull: { sentRequests: userObjId }, $addToSet: { myFriends: userObjId } }
-        );
+      case "CANNOT_ADD_SELF":
+        return res.status(400).json({ message: "You cannot add yourself as a friend." });
 
-        res.json({ message: "Request accepted" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
+      case "INVALID_FRIEND":
+        return res.status(404).json({ message: "Friend not found." });
+
+      case "NO_REQUEST_FOUND":
+        return res.status(409).json({ message: "No friend request found from this user." });
+
+      case "ALREADY_FRIEND":
+        return res.status(409).json({ message: "You are already friends." });
+
+      default:
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+  }
+};
+
+const cancelReceivedRequest = async (req, res) => {
+  try {
+    const result = await cancelReceivedRequestService(req);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+
+    switch (error.message) {
+      case "INVALID_FRIEND_ID":
+        return res.status(400).json({ message: "The friend ID is invalid." });
+
+      case "INVALID_FRIEND":
+        return res.status(404).json({ message: "Friend not found." });
+
+      case "NO_RECEIVED_REQUEST":
+        return res.status(409).json({ message: "No received friend request to cancel." });
+
+      default:
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+};
 
 const unfriend = async (req, res) => {
-    try {
-        const { userId, friendId } = req.body;
-        const userObjId = mongoose.Types.ObjectId(userId);
-        const friendObjId = mongoose.Types.ObjectId(friendId);
+  try {
+    const result = await unfriendService(req);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
 
-        await userModel.updateOne({ _id: userObjId }, { $pull: { myFriends: friendObjId } });
-        await userModel.updateOne({ _id: friendObjId }, { $pull: { myFriends: userObjId } });
+    switch (error.message) {
+      case "INVALID_FRIEND_ID":
+        return res.status(400).json({ message: "The friend ID is invalid." });
 
-        res.json({ message: "Unfriend successful" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Server error");
+      case "INVALID_FRIEND":
+        return res.status(404).json({ message: "Friend not found." });
+
+      case "NOT_FRIEND":
+        return res.status(409).json({ message: "You are not friends." });
+
+      default:
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-}
+  }
+};
+
+
+
+
+
 
 module.exports = {
-    getFriend,
-    myFriends,
-    requests,
-    sentrequest,
-    youMayKnow,
-    addFriend,
-    cancelsentrequest,
-    cancelreceivedrequest,
-    confirmFriend,
-    unfriend
+  myFriends,
+  requests,
+  sentrequests,
+  youMayKnow,
+
+  addFriend,
+  cancelSentRequest,
+  cancelReceivedRequest,
+  confirmFriend,
+  unfriend
 }

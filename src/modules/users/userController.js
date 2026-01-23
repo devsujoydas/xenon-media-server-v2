@@ -1,9 +1,10 @@
  const {
   getAllUsersService,
-  getProfileService,
+  getMyProfileService,
   updateProfileService,
   deleteProfileService,
   activeStatusServicess,
+  getUsersProfileService,
 } = require("./userServices");
 
 
@@ -18,14 +19,29 @@ const getUsers = async (req, res) => {
   }
 }
 
-const getProfile = async (req, res) => {
+
+
+const getMyProfile = async (req, res) => { 
   try {
-    const user = await getProfileService(req)
+    const user = await getMyProfileService(req)
     res.status(200).json(user);
   } catch (error) {
     if (error.message === "UNAUTHORIZE") {
       return res.status(400).json({ message: "Unauthorized" });
     }
+    if (error.message === "USER_NOT_FOUND") {
+      return res.status(400).json({ message: "User not found" });
+    }
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
+
+const getUsersProfile = async (req, res) => {
+  try {
+    const user = await getUsersProfileService(req)
+    res.status(200).json(user);
+  } catch (error) {
     if (error.message === "USER_NOT_FOUND") {
       return res.status(400).json({ message: "User not found" });
     }
@@ -128,7 +144,9 @@ const activeStatus = async (req, res) => {
 
 module.exports = {
   getUsers,
-  getProfile,
+  getUsersProfile,
+
+  getMyProfile,
   updateProfile,
   deleteProfile,
   activeStatus,

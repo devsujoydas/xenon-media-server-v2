@@ -14,7 +14,7 @@ const verifyToken = async (req) => {
 
     const user = await User.findById(decoded.id).select("-password -refreshToken");
     if (!user) {
-      return { error: { status: 404, message: "User not found" } };
+      return { error: { status: 404, message: "USER NOT FOUND" } };
     }
 
     return { decoded };

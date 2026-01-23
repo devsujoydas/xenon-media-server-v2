@@ -1,26 +1,37 @@
 const express = require("express");
 const router = express.Router();
 
-const {  getFriend, myFriends, requests, sentrequest, youMayKnow, addFriend, cancelsentrequest, cancelreceivedrequest, confirmFriend, unfriend } = require("./friendController");
+const isVerifyUser = require("../../middlewares/verifyUser");
+const {
+    myFriends,
+    requests,
+    sentrequests,
+    youMayKnow,
+    addFriend,
+    cancelSentRequest,
+    cancelReceivedRequest,
+    confirmFriend,
+    unfriend
+} = require("./friendController");
 
 
 
 
+router.put("/friend/:userId/addfriend", isVerifyUser, addFriend);
+router.put("/friend/:userId/cancel-sent-request", isVerifyUser, cancelSentRequest);
+router.put("/friend/:userId/confirmfriend", isVerifyUser, confirmFriend);
+router.put("/friend/:userId/cancel-received-request", isVerifyUser, cancelReceivedRequest);
+router.put("/friend/:userId/unfriend", isVerifyUser, unfriend);
 
 
 
 
-router.get("/:username", getFriend);
-router.get("/myfriends", myFriends);
-router.get("/requests", requests);
-router.get("/sentrequest", sentrequest);
-router.get("/youMayKnow", youMayKnow);
+router.get("/myfriends", isVerifyUser, myFriends); 
+router.get("/received-requests", isVerifyUser, requests);
+router.get("/sent-request", isVerifyUser, sentrequests);
+router.get("/youMayKnow", isVerifyUser, youMayKnow); 
 
-router.put("/addfriend", addFriend);
-router.put("/cancelsentrequest", cancelsentrequest);
-router.put("/cancelreceivedrequest", cancelreceivedrequest);
-router.put("/confirmFriend", confirmFriend);
-router.put("/unfriend", unfriend);
+
 
 
 module.exports = router;

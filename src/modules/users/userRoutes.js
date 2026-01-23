@@ -1,20 +1,23 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const upload = multer();
+
 const {
     getUsers,
-    getProfile,
+    getMyProfile,
     updateProfile,
     deleteProfile,
     activeStatus,
+    getUsersProfile,
 } = require("./userController");
 const isVerifyUser = require("../../middlewares/verifyUser");
 
 
 router.get("/", isVerifyUser, getUsers);
+router.get("/profile", isVerifyUser, getMyProfile);
 
-router.get("/profile", isVerifyUser, getProfile);
+router.get("/:userId", isVerifyUser, getUsersProfile);
+
 router.put("/profile", isVerifyUser, updateProfile);
 router.delete("/profile", isVerifyUser, deleteProfile);
 

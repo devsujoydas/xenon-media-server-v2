@@ -28,14 +28,24 @@ const getAllUsersService = async (req) => {
   return { users, userCounts };
 };
 
-const getProfileService = async (req) => {
-  if (!req.user) throw new Error("UNAUTHORIZE");
-
-  const user = await User.findById(req.user.id).select("-refreshToken");
+const getMyProfileService = async (req) => { 
+  if (!req.user.id) throw new Error("UNAUTHORIZE");
+  
+  const user = await User.findById(req.user.id);
   if (!user) throw new Error("USER_NOT_FOUND")
 
   return user
 }
+
+const getUsersProfileService = async (req) => {
+  const userId = req.params.userId;
+  const user = await User.findById(userId)
+  if (!user) throw new Error("USER_NOT_FOUND")
+
+  return user
+}
+
+
 
 const updateProfileService = async (req) => {
   const { name, username, profile, contactInfo, socialLinks, location } = req.body;
@@ -141,9 +151,10 @@ const activeStatusServicess = async (userId) => {
 
 module.exports = {
   getAllUsersService,
-  getProfileService,
+  getUsersProfileService,
+
+  getMyProfileService,
   updateProfileService,
   deleteProfileService,
-
   activeStatusServicess,
 }
