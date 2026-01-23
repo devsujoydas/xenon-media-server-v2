@@ -4,3 +4,5 @@ function shuffleArray(array) {
         .sort((a, b) => a.sort - b.sort)
         .map(({ value }) => value);
 }
+
+module.exports = shuffleArray

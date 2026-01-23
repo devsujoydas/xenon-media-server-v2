@@ -1,83 +1,43 @@
 const {
-  getMyFriendsService,
-  getRequestsService,
-  getSentRequestsService,
+
   getYouMayKnowService,
 
   addFriendService,
   confirmFriendService,
   cancelSentRequestService,
   cancelReceivedRequestService,
-  unfriendService
+  unfriendService,
+  getMyConnectionsService
 } = require("./friendServices");
 
 
 
 
 
-const myFriends = async (req, res) => {
+const getMyConnections = async (req, res) => {
   try {
-    const result = getMyFriendsService(req)
+    const result = await getMyConnectionsService(req)
     res.send(result)
   } catch (error) {
     res.status(500).send(error.message);
   }
 }
 
-const requests = async (req, res) => {
+
+
+const youMayKnowController = async (req, res) => {
   try {
-    const email = req.query.email;
-    if (!email) return res.status(400).send("Email missing");
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const user = await userModel.findOne({ email }).populate("receivedRequests");
-    if (!user) return res.status(404).send("User not found");
+    const suggestions = await getYouMayKnowService(userId);
 
-    res.json(user.receivedRequests || []);
+    res.json(suggestions);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Server error");
+    res.status(500).json({ message: error.message || "Server error" });
   }
-}
-
-const sentrequests = async (req, res) => {
-  try {
-    const email = req.query.email;
-    if (!email) return res.status(400).send("Email missing");
-
-    const user = await userModel.findOne({ email }).populate("sentRequests");
-    if (!user) return res.status(404).send("User not found");
-
-    res.json(user.sentRequests || []);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Server error");
-  }
-}
-
-const youMayKnow = async (req, res) => {
-  try {
-    const email = req.query.email;
-    if (!email) return res.status(400).send("Email missing");
-
-    const user = await userModel.findOne({ email }).populate("myFriends receivedRequests sentRequests");
-    if (!user) return res.status(404).send("User not found");
-
-    const excludeIds = [
-      user._id.toString(),
-      ...(user.myFriends || []).map(u => u._id.toString()),
-      ...(user.receivedRequests || []).map(u => u._id.toString()),
-      ...(user.sentRequests || []).map(u => u._id.toString())
-    ];
-
-    const allUsers = await userModel.find();
-    const youMayKnow = allUsers.filter(u => !excludeIds.includes(u._id.toString()));
-
-    res.json(youMayKnow);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Server error");
-  }
-}
+};
 
 
 
@@ -227,10 +187,8 @@ const unfriend = async (req, res) => {
 
 
 module.exports = {
-  myFriends,
-  requests,
-  sentrequests,
-  youMayKnow,
+  getMyConnections,
+  youMayKnowController,
 
   addFriend,
   cancelSentRequest,

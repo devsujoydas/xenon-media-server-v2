@@ -1,4 +1,5 @@
 const buildNestedUpdateFields = require("../../utils/buildNestedUpdateFields");
+const shuffleArray = require("../../utils/shuffleArray");
 const Post = require("../posts/postModel");
 const User = require("./userModel");
 
@@ -13,39 +14,84 @@ const getAllUsersService = async (req) => {
   if (search) {
     filter.$or = [
       { name: { $regex: search, $options: "i" } },
+      { username: { $regex: search, $options: "i" } },
       { email: { $regex: search, $options: "i" } }
     ];
   }
-  if (role) { filter.role = role; }
-  if (status) { filter.status = status; }
+  if (role) filter.role = role;
+  if (status) filter.status = status;
 
   const users = await User.find(filter)
-    .select("-password -refreshToken")
+    .select("name username email role profile contactInfo location activeStatus myFriends") 
     .sort({ createdAt: -1 });
+
+
+  const mappedUsers = users.map(user => ({
+    _id: user._id,
+    name: user.name,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    profile: user.profile,
+    contactInfo: user.contactInfo,
+    location: user.location,
+    activeStatus: user.activeStatus,
+    friendCount: user.myFriends.length,
+  }));
+
+  const usersArray = shuffleArray(mappedUsers)
 
   const userCounts = await User.countDocuments(filter);
 
-  return { users, userCounts };
+  return { users: usersArray, userCounts };
 };
 
-const getMyProfileService = async (req) => { 
-  if (!req.user.id) throw new Error("UNAUTHORIZE");
-  
-  const user = await User.findById(req.user.id);
-  if (!user) throw new Error("USER_NOT_FOUND")
 
-  return user
-}
+
+const getMyProfileService = async (req) => {
+  if (!req.user?.id) throw new Error("UNAUTHORIZE");
+ 
+  const user = await User.findById(req.user.id)
+    .select("name username email role profile contactInfo location activeStatus myFriends ");
+
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  return {
+     _id: user._id,
+    name: user.name,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    profile: user.profile,
+    contactInfo: user.contactInfo,
+    location: user.location,
+    activeStatus: user.activeStatus,
+    friendCount: user.myFriends.length,
+  };
+};
+
 
 const getUsersProfileService = async (req) => {
-  const userId = req.params.userId;
-  const user = await User.findById(userId)
-  if (!user) throw new Error("USER_NOT_FOUND")
+  if (!req.params?.userId) throw new Error("UNAUTHORIZE");
+ 
+  const user = await User.findById(req.params.userId)
+    .select("name username email role profile contactInfo location activeStatus myFriends ");
 
-  return user
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  return {
+    _id: user._id,
+    name: user.name,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    profile: user.profile,
+    contactInfo: user.contactInfo,
+    location: user.location,
+    activeStatus: user.activeStatus,
+    friendCount: user.myFriends.length,
+  };
 }
-
-
 
 const updateProfileService = async (req) => {
   const { name, username, profile, contactInfo, socialLinks, location } = req.body;

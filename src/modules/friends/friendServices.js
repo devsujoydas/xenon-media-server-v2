@@ -2,25 +2,69 @@ const { default: mongoose } = require("mongoose");
 const { ObjectId } = require("mongodb");
 const User = require("../users/userModel");
 
-const getMyFriendsService = async (req) => {
-    const id = req.user.id;
-    const user = await User.findById({ _id: id })
-    if (!user) throw new Error("USER_NOT_FOUND")
-    console.log(user)
 
 
-}
 
-const getRequestsService = async (req) => {
 
-}
-const getSentRequestsService = async (req) => {
+const getMyConnectionsService = async (req) => {
 
-}
-const getYouMayKnowService = async (req) => {
+  const user = await User.findById(req.user.id)
+    .populate("myFriends.userId", "name username profile.profilePhoto")
+    .populate("sentRequests.userId", "name username profile.profilePhoto")
+    .populate("receivedRequests.userId", "name username profile.profilePhoto");
 
-}
+  if (!user) throw new Error("USER_NOT_FOUND");
 
+  const myFriends = (user.myFriends || []).map(f => ({
+    ...f.userId.toObject(),
+    since: f.since
+  }));
+
+  const sentRequests = (user.sentRequests || []).map(r => ({
+    ...r.userId.toObject(),
+    requestedAt: r.requestedAt
+  }));
+
+  const receivedRequests = (user.receivedRequests || []).map(r => ({
+    ...r.userId.toObject(),
+    requestedAt: r.requestedAt
+  }));
+
+  return {
+    myFriends,
+    sentRequests,
+    receivedRequests
+  };
+
+};
+
+
+const getYouMayKnowService = async (userId) => {
+
+  const user = await User.findById(userId)
+    .select("myFriends sentRequests receivedRequests");
+
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  const excludeIds = [
+    user._id.toString(),
+    ...(user.myFriends || []).map(f => f.userId.toString()),
+    ...(user.sentRequests || []).map(r => r.userId.toString()),
+    ...(user.receivedRequests || []).map(r => r.userId.toString())
+  ];
+
+  const suggestions = await User.find({ _id: { $nin: excludeIds } })
+    .select("name username profile.profilePhoto")
+
+  const result = suggestions.map(u => ({
+    _id: u._id,
+    name: u.name,
+    username: u.username,
+    profile: u.profile,
+  }));
+
+  return result;
+};
 
 
 
@@ -104,39 +148,39 @@ const cancelSentRequestService = async (req) => {
 };
 
 const confirmFriendService = async (req) => {
-    const userId = new mongoose.Types.ObjectId(req.user.id);
-    const friendId = req.params.userId;
-    const friendObjectId = new mongoose.Types.ObjectId(friendId);
+  const userId = new mongoose.Types.ObjectId(req.user.id);
+  const friendId = req.params.userId;
+  const friendObjectId = new mongoose.Types.ObjectId(friendId);
 
-    if (!mongoose.Types.ObjectId.isValid(friendId)) throw new Error("INVALID_FRIEND_ID");
-    if (userId.equals(friendObjectId)) throw new Error("CANNOT_ADD_SELF");
+  if (!mongoose.Types.ObjectId.isValid(friendId)) throw new Error("INVALID_FRIEND_ID");
+  if (userId.equals(friendObjectId)) throw new Error("CANNOT_ADD_SELF");
 
-    const me = await User.findById(userId);
-    const friend = await User.findById(friendObjectId);
+  const me = await User.findById(userId);
+  const friend = await User.findById(friendObjectId);
 
-    if (!friend) throw new Error("INVALID_FRIEND");
+  if (!friend) throw new Error("INVALID_FRIEND");
 
-    const received = me.receivedRequests || [];
-    const requestExists = received.find(req => req.userId.equals(friendObjectId));
-    if (!requestExists) throw new Error("NO_REQUEST_FOUND");
+  const received = me.receivedRequests || [];
+  const requestExists = received.find(req => req.userId.equals(friendObjectId));
+  if (!requestExists) throw new Error("NO_REQUEST_FOUND");
 
-    await User.findByIdAndUpdate(friendObjectId, {
-        $pull: { sentRequests: { userId: userId } }
-    });
+  await User.findByIdAndUpdate(friendObjectId, {
+    $pull: { sentRequests: { userId: userId } }
+  });
 
-    await User.findByIdAndUpdate(userId, {
-        $pull: { receivedRequests: { userId: friendObjectId } }
-    });
+  await User.findByIdAndUpdate(userId, {
+    $pull: { receivedRequests: { userId: friendObjectId } }
+  });
 
-    await User.findByIdAndUpdate(userId, {
-        $addToSet: { myFriends: { userId: friendObjectId, since: new Date() } }
-    });
+  await User.findByIdAndUpdate(userId, {
+    $addToSet: { myFriends: { userId: friendObjectId, since: new Date() } }
+  });
 
-    await User.findByIdAndUpdate(friendObjectId, {
-        $addToSet: { myFriends: { userId: userId, since: new Date() } }
-    });
+  await User.findByIdAndUpdate(friendObjectId, {
+    $addToSet: { myFriends: { userId: userId, since: new Date() } }
+  });
 
-    return { message: "Friend request confirmed" };
+  return { message: "Friend request confirmed" };
 };
 
 const cancelReceivedRequestService = async (req) => {
@@ -205,15 +249,13 @@ const unfriendService = async (req) => {
 
 
 module.exports = {
-    getMyFriendsService,
-    getRequestsService,
-    getSentRequestsService,
-    getYouMayKnowService,
+  getMyConnectionsService,
+  getYouMayKnowService,
 
-    addFriendService,
-    cancelSentRequestService,
-    unfriendService,
-    cancelReceivedRequestService,
-    confirmFriendService,
+  addFriendService,
+  cancelSentRequestService,
+  unfriendService,
+  cancelReceivedRequestService,
+  confirmFriendService,
 
 }

@@ -3,15 +3,14 @@ const router = express.Router();
 
 const isVerifyUser = require("../../middlewares/verifyUser");
 const {
-    myFriends,
-    requests,
-    sentrequests,
+    getMyConnections,
     youMayKnow,
     addFriend,
     cancelSentRequest,
     cancelReceivedRequest,
     confirmFriend,
-    unfriend
+    unfriend,
+    youMayKnowController
 } = require("./friendController");
 
 
@@ -26,10 +25,8 @@ router.put("/friend/:userId/unfriend", isVerifyUser, unfriend);
 
 
 
-router.get("/myfriends", isVerifyUser, myFriends); 
-router.get("/received-requests", isVerifyUser, requests);
-router.get("/sent-request", isVerifyUser, sentrequests);
-router.get("/youMayKnow", isVerifyUser, youMayKnow); 
+router.get("/myConnections", isVerifyUser, getMyConnections);  
+router.get("/youMayKnow", isVerifyUser, youMayKnowController); 
 
 
 
