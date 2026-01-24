@@ -4,7 +4,6 @@ const router = express.Router();
 const isVerifyUser = require("../../middlewares/verifyUser");
 const {
     getMyConnections,
-    youMayKnow,
     addFriend,
     cancelSentRequest,
     cancelReceivedRequest,
