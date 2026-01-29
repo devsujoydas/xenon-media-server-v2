@@ -139,7 +139,7 @@ const getMySavedPosts = async (req, res) => {
 
 
 // comments 
-const getComments = async (req, res) => {
+const getComments = async (req, res) => { 
     try {
         const comments = await getCommentsService(req);
         res.status(200).json(comments);
@@ -178,8 +178,6 @@ const deleteComment = async (req, res) => {
 
 const manageLike = async (req, res) => {
     try {
-        
-        
         const result = await manageLikeService(req)
         res.json(result)
     } catch (error) {
@@ -193,9 +191,7 @@ const manageLike = async (req, res) => {
 
 const manageDislike = async (req, res) => {
     try {
-        const userId = req?.user._id
-        const { postId, commentId } = req.params
-        const result = await manageDislikeService(userId, postId, commentId)
+        const result = await manageDislikeService(req)
         res.json(result)
     } catch (error) {
         if (error.message === "POST_NOT_FOUND") {

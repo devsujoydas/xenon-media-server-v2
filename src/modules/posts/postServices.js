@@ -199,29 +199,34 @@ const reactPostServices = async (req) => {
 const getCommentsService = async (req) => {
     const { postId } = req.params;
     const { sort = "recent" } = req.query;
-    const userId = req.user?._id?.toString();
+    const userId = req.user.id;
+
 
     let comments = await Comment.find({ postId })
         .populate("author", "name username profile.profilePhoto")
         .lean();
 
     comments = comments.map(c => {
+        const likes = c.likes.map(id => id.toString());
+        const disLikes = c.disLikes.map(id => id.toString());
+
         const likedByMe = userId
-            ? c.likes.some(id => id.toString() === userId)
+            ? likes.includes(userId.toString())
             : false;
 
         const dislikedByMe = userId
-            ? c.disLikes.some(id => id.toString() === userId)
+            ? disLikes.includes(userId.toString())
             : false;
 
         return {
             ...c,
             likesCount: c.likes.length,
-            dislikedCount: c.disLikes.length,
+            dislikesCount: c.disLikes.length,
             likedByMe,
             dislikedByMe,
         };
     });
+
 
     if (sort === "recent") {
         comments.sort(
@@ -323,11 +328,10 @@ const deleteCommentService = async (req) => {
 
 
 
-// ===== Manage Like Service =====
 const manageLikeService = async (req) => {
 
     const userId = req?.user.id
-    const { postId, commentId } = req.params
+    const { commentId } = req.params
 
     const comment = await Comment.findById(commentId);
     if (!comment) throw new Error("COMMENT_NOT_FOUND");
@@ -335,12 +339,8 @@ const manageLikeService = async (req) => {
     const likesArr = comment.likes.map(id => id?.toString()).filter(Boolean);
     const dislikesArr = comment.disLikes.map(id => id?.toString()).filter(Boolean);
 
-
     const liked = likesArr.includes(userId);
     const disliked = dislikesArr.includes(userId);
-
-    console.log(likesArr, dislikesArr)
-    console.log(liked, disliked)
 
 
     if (liked) {
@@ -361,9 +361,13 @@ const manageLikeService = async (req) => {
     };
 };
 
-// ===== Manage Dislike Service =====
-const manageDislikeService = async ({ userId, postId, commentId }) => {
-    const comment = await Comment.findOne({ _id: commentId, postId });
+
+const manageDislikeService = async (req) => {
+
+    const userId = req?.user.id
+    const { commentId } = req.params
+
+    const comment = await Comment.findById(commentId);
     if (!comment) throw new Error("COMMENT_NOT_FOUND");
 
     const likesArr = comment.likes.map(id => id?.toString()).filter(Boolean);
@@ -373,12 +377,10 @@ const manageDislikeService = async ({ userId, postId, commentId }) => {
     const disliked = dislikesArr.includes(userId);
 
     if (disliked) {
-        // remove dislike
         comment.disLikes.pull(userId);
     } else {
-        // add dislike
         comment.disLikes.addToSet(userId);
-        if (liked) comment.likes.pull(userId); // remove from likes if exists
+        if (liked) comment.likes.pull(userId);
     }
 
     await comment.save();

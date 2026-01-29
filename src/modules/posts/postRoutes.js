@@ -23,13 +23,13 @@ router.put("/:id/save", isVerifyUser, savePost);
 
 
 // Comments
-router.get("/:postId/comments", getComments)
+router.get("/:postId/comments", isVerifyUser, getComments)
 router.post("/:postId/comment", isVerifyUser, createComment)
 router.put("/:postId/comments/:commentId", isVerifyUser, updateComment);
 router.delete("/:postId/comments/:commentId", isVerifyUser, deleteComment)
 
-router.put("/post/:postId/comments/:commentId/like", isVerifyUser, manageLike);
-router.put("/post/:postId/comments/:commentId/dislike", isVerifyUser, manageDislike);
+router.put("/comments/:commentId/like", isVerifyUser, manageLike);
+router.put("/comments/:commentId/dislike", isVerifyUser, manageDislike);
 
 
 module.exports = router;
