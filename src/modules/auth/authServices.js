@@ -8,23 +8,24 @@ const { JWT_SECRET, ACCESS_TOKEN_EXPIRESIN } = require("../../configs/config");
 const signUpUserService = async (req, res) => {
   const { name, email, password } = req.body;
 
+
   const exists = await User.findOne({ email });
-  if (exists) { throw new Error("Email already exists") }
-
+  if (exists) { throw new Error("USER_ALREADY_EXIST") }
+  
   const hashedPassword = await bcrypt.hash(password, 10);
-
+  
   const user = await User.create({
     name, email,
     password: hashedPassword,
   });
-
+  
   const username = email.split("@")[0].split("+")[0];
   const { accessToken, refreshToken } = createTokens(res, user);
-
+  
   user.username = username;
   user.refreshToken = refreshToken;
   await user.save();
-
+  
   return {
     message: "User registered successfully",
     user,
@@ -32,7 +33,10 @@ const signUpUserService = async (req, res) => {
   };
 };
 
+
+
 const signInUserService = async (req, res) => {
+  
   const { email, password } = req.body
 
   const user = await User.findOne({ email }).select("+password");
@@ -52,6 +56,8 @@ const signInUserService = async (req, res) => {
     accessToken,
   };
 };
+
+
 
 const logOutUserService = async (refreshToken) => {
   if (!refreshToken) {

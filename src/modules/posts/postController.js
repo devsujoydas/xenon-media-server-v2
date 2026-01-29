@@ -1,4 +1,4 @@
-const { getPostsServices, getPostServices, createPostServices, deletePostServices, updatePostServices, reactPostServices, getMyPostsServices, getUserPostsServices, savePostServices, getMySavedPostsService, deleteCommentService, createCommentService, getCommentsService, updateCommentService } = require("./postServices");
+const { getPostsServices, getPostServices, createPostServices, deletePostServices, updatePostServices, reactPostServices, getMyPostsServices, getUserPostsServices, savePostServices, getMySavedPostsService, deleteCommentService, createCommentService, getCommentsService, updateCommentService, manageDislikeService, manageLikeService } = require("./postServices");
 
 
 
@@ -151,8 +151,8 @@ const getComments = async (req, res) => {
 
 const createComment = async (req, res) => {
     try {
-        const comment = await createCommentService(req);
-        res.status(201).json(comment);
+        const result = await createCommentService(req);
+        res.status(201).json(result);
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
@@ -176,16 +176,46 @@ const deleteComment = async (req, res) => {
     }
 };
 
+const manageLike = async (req, res) => {
+    try {
+        
+        
+        const result = await manageLikeService(req)
+        res.json(result)
+    } catch (error) {
+        if (error.message === "POST_NOT_FOUND") {
+            return res.status(400).json({ message: "Post not found" });
+        }
+        console.error("Error liking post:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+const manageDislike = async (req, res) => {
+    try {
+        const userId = req?.user._id
+        const { postId, commentId } = req.params
+        const result = await manageDislikeService(userId, postId, commentId)
+        res.json(result)
+    } catch (error) {
+        if (error.message === "POST_NOT_FOUND") {
+            return res.status(400).json({ message: "Post not found" });
+        }
+        console.error("Error liking post:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 
 
 
 module.exports = {
     getPosts,
     getUserPosts,
-    
+
     getMyPosts,
     getMySavedPosts,
-    
+
     getPost,
     createPost,
     updatePost,
@@ -198,4 +228,7 @@ module.exports = {
     createComment,
     updateComment,
     deleteComment,
+
+    manageLike,
+    manageDislike,
 }

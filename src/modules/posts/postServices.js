@@ -22,10 +22,10 @@ const getPostsServices = async (req) => {
 };
 
 const getUserPostsServices = async (req) => {
-    const viewerId = req?.user?._id;
+    const userId = req?.user?._id;
     const profileUserId = req.params.userId;
     const filter = { author: profileUserId };
-    return fetchPosts(filter, viewerId);
+    return fetchPosts(filter, userId);
 };
 
 const getMyPostsServices = async (req) => {
@@ -70,9 +70,12 @@ const getPostServices = async (req) => {
 
     if (!post) throw new Error("POST_NOT_FOUND");
 
+    let comments = await Comment.estimatedDocumentCount({ postId })
+
     const postObj = post.toObject();
     return {
         ...postObj,
+        commentCount: comments,
         likesCount: postObj.likes.length,
         likedByMe: req.user
             ? postObj.likes.some((u) => u._id.equals(req.user.id))
@@ -190,26 +193,65 @@ const reactPostServices = async (req) => {
 
 
 
+
+
+
 const getCommentsService = async (req) => {
-    const postId = req.params.postId;
+    const { postId } = req.params;
+    const { sort = "recent" } = req.query;
+    const userId = req.user?._id?.toString();
 
-    const post = await Post.findById(postId);
-    if (!post) throw new Error("POST_NOT_FOUND");
+    let comments = await Comment.find({ postId })
+        .populate("author", "name username profile.profilePhoto")
+        .lean();
 
-    const comments = await Comment.find({ postId })
-        .sort({ createdAt: -1 })
-        .populate("author", "name username profile.profilePhoto");
+    comments = comments.map(c => {
+        const likedByMe = userId
+            ? c.likes.some(id => id.toString() === userId)
+            : false;
 
-    return { totalComments: comments.length, comments };
+        const dislikedByMe = userId
+            ? c.disLikes.some(id => id.toString() === userId)
+            : false;
+
+        return {
+            ...c,
+            likesCount: c.likes.length,
+            dislikedCount: c.disLikes.length,
+            likedByMe,
+            dislikedByMe,
+        };
+    });
+
+    if (sort === "recent") {
+        comments.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+    }
+
+    if (sort === "relevant") {
+        comments.sort(
+            (a, b) => b.likesCount - a.likesCount
+        );
+    }
+
+    return {
+        comments,
+    };
 };
 
 
+
+
+
 const createCommentService = async (req) => {
-    const text = req.body.text;
-    const postId = req.params.postId;
+    const { text } = req.body;
+    const { postId } = req.params;
     const userId = req.user.id;
 
     if (!text) throw new Error("TEXT_REQUIRED");
+
+    if (!postId.match(/^[0-9a-fA-F]{24}$/)) throw new Error("INVALID_POST_ID");
 
     const post = await Post.findById(postId);
     if (!post) throw new Error("POST_NOT_FOUND");
@@ -220,8 +262,12 @@ const createCommentService = async (req) => {
         postId,
     });
 
-    return newComment;
+    return { newComment, message: "Comment created successfully" };
 };
+
+
+
+
 
 
 const updateCommentService = async (req) => {
@@ -277,9 +323,74 @@ const deleteCommentService = async (req) => {
 
 
 
+// ===== Manage Like Service =====
+const manageLikeService = async (req) => {
+
+    const userId = req?.user.id
+    const { postId, commentId } = req.params
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) throw new Error("COMMENT_NOT_FOUND");
+
+    const likesArr = comment.likes.map(id => id?.toString()).filter(Boolean);
+    const dislikesArr = comment.disLikes.map(id => id?.toString()).filter(Boolean);
 
 
+    const liked = likesArr.includes(userId);
+    const disliked = dislikesArr.includes(userId);
 
+    console.log(likesArr, dislikesArr)
+    console.log(liked, disliked)
+
+
+    if (liked) {
+        comment.likes.pull(userId);
+    } else {
+        comment.likes.addToSet(userId);
+        if (disliked) comment.disLikes.pull(userId);
+    }
+
+    await comment.save();
+
+    return {
+        message: liked ? "Unliked comment" : "Liked comment",
+        likesCount: comment.likes.length,
+        dislikesCount: comment.disLikes.length,
+        likedByMe: !liked,
+        dislikedByMe: false
+    };
+};
+
+// ===== Manage Dislike Service =====
+const manageDislikeService = async ({ userId, postId, commentId }) => {
+    const comment = await Comment.findOne({ _id: commentId, postId });
+    if (!comment) throw new Error("COMMENT_NOT_FOUND");
+
+    const likesArr = comment.likes.map(id => id?.toString()).filter(Boolean);
+    const dislikesArr = comment.disLikes.map(id => id?.toString()).filter(Boolean);
+
+    const liked = likesArr.includes(userId);
+    const disliked = dislikesArr.includes(userId);
+
+    if (disliked) {
+        // remove dislike
+        comment.disLikes.pull(userId);
+    } else {
+        // add dislike
+        comment.disLikes.addToSet(userId);
+        if (liked) comment.likes.pull(userId); // remove from likes if exists
+    }
+
+    await comment.save();
+
+    return {
+        message: disliked ? "Removed dislike" : "Disliked comment",
+        likesCount: comment.likes.length,
+        dislikesCount: comment.disLikes.length,
+        likedByMe: false,
+        dislikedByMe: !disliked
+    };
+};
 
 
 
@@ -305,4 +416,7 @@ module.exports = {
     createCommentService,
     updateCommentService,
     deleteCommentService,
+
+    manageLikeService,
+    manageDislikeService,
 } 

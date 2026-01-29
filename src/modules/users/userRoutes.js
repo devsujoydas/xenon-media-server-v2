@@ -15,8 +15,8 @@ const isVerifyUser = require("../../middlewares/verifyUser");
 
 router.get("/", isVerifyUser, getUsers);
 router.get("/profile", isVerifyUser, getMyProfile);
+router.get("/profile/:userId", isVerifyUser, getUsersProfile);
 
-router.get("/:userId", isVerifyUser, getUsersProfile);
 
 router.put("/profile", isVerifyUser, updateProfile);
 router.delete("/profile", isVerifyUser, deleteProfile);

@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { getPosts, deletePost, updatePost, getPost, createPost, reactPost, getMyPosts, getUserPosts, savePost ,getMySavedPosts, createComment, deleteComment, getComments, updateComment } = require("./postController");
+const { getPosts, deletePost, updatePost, getPost, createPost, reactPost, getMyPosts, getUserPosts, savePost, getMySavedPosts, createComment, deleteComment, getComments, updateComment, manageDislike, manageLike } = require("./postController");
 const isVerifyUser = require("../../middlewares/verifyUser");
 
 
 router.get("/", isVerifyUser, getPosts);
 router.get("/user/:userId", isVerifyUser, getUserPosts);
 
-router.get("/me", isVerifyUser, getMyPosts);
+router.get("/my", isVerifyUser, getMyPosts);
 router.get("/me/saved", isVerifyUser, getMySavedPosts);
 
 router.get("/:postid", isVerifyUser, getPost);
@@ -28,6 +28,8 @@ router.post("/:postId/comment", isVerifyUser, createComment)
 router.put("/:postId/comments/:commentId", isVerifyUser, updateComment);
 router.delete("/:postId/comments/:commentId", isVerifyUser, deleteComment)
 
- 
+router.put("/post/:postId/comments/:commentId/like", isVerifyUser, manageLike);
+router.put("/post/:postId/comments/:commentId/dislike", isVerifyUser, manageDislike);
+
 
 module.exports = router;
