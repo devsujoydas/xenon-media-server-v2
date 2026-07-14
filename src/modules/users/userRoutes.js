@@ -22,7 +22,6 @@ router.put("/profile", isVerifyUser, updateProfile);
 router.delete("/profile", isVerifyUser, deleteProfile);
 
 
-
 router.post("/active-status", isVerifyUser, activeStatus);
 
 

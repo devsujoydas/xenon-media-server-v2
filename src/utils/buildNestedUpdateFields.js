@@ -1,13 +1,11 @@
 const buildNestedUpdateFields = (source, parentKey, updateFields) => {
-  if (!source) return;
+  if (!source || typeof source !== "object") return;
 
-  for (const key in source) {
-    const value = source[key];
-
-    if (value !== "" && value !== null && value !== undefined) {
+  Object.entries(source).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
       updateFields[`${parentKey}.${key}`] = value;
     }
-  }
+  });
 };
 
-module.exports =  buildNestedUpdateFields
+module.exports = buildNestedUpdateFields;

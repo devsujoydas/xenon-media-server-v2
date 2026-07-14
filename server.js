@@ -14,20 +14,24 @@ app.use(cookieParser());
 
 connectDB();
 
-
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://xenonmedia.netlify.app", "https://xenonmedia.vercel.app",],
+    origin: [
+      "http://localhost:5173", 
+      "https://xenonmedia.netlify.app",
+      "https://xenonmedia.vercel.app",
+    ],
     credentials: true,
-  })
+  }),
 );
 
+app.get("/", (req, res) =>
+  res.send("Xenon Media v2 Connected With Server & MongoDB"),
+);
+app.use("/api/v2", allRoutes);
 
-app.get("/", (req, res) => res.send("Xenon Media v2 Connected With Server & MongoDB"));
-app.use("/api/v2", allRoutes)
-
-app.listen(port, () => { 
-  console.log(`Mongoose Server running on port ${port}`) 
+app.listen(port, () => {
+  console.log(`Mongoose Server running on port ${port}`);
 });
 
-module.exports = app; 
+module.exports = app;

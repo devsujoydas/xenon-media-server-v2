@@ -1,42 +1,54 @@
 const nodemailer = require("nodemailer");
 
-/**
- * @param {string} to
- * @param {string} subject
- * @param {string} html
- * @param {string} [text]
- */
-const sendEmail = async (to, subject, html, text) => {
-  try { 
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
- 
-    const mailOptions = {
-      from: `"Xenon-Media-V2 Support" <${process.env.EMAIL_USER}>`,
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_APP_USER,
+    pass: process.env.EMAIL_APP_PASS,
+  },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
+  logger: true,
+  debug: true,
+});
+
+console.log(process.env.EMAIL_APP_USER);
+console.log(process.env.EMAIL_APP_PASS?.length);
+
+const sendEmail = async ({
+  to,
+  subject,
+  html,
+  text = "Please open this email in an HTML compatible email client.",
+}) => {
+  try {
+    console.log("Enterd Send Email");
+    console.log("Before sendMail");
+
+    const info = await transporter.sendMail({
+      from: `"Xenly Support" <${process.env.EMAIL_APP_USER}>`,
       to,
       subject,
       html,
-      text: text || "Please view this email in an HTML-compatible viewer.",
-      headers: {
-        "X-Priority": "3",
-        "X-Mailer": "Xenon-Media-V2 Mail Service",
-      },
-    };
- 
-    const info = await transporter.sendMail(mailOptions);
-   
+      text,
+    });
 
-    return true;
+    console.log("After sendMail");
+    console.log(info);
+
+    console.log(`📨 Email sent: ${info.messageId}`);
+
+    return info;
   } catch (error) {
-    console.error("Email sending failed:", error);
-    throw new Error("Failed to send email. Please try again later.");
+    console.error("Full Email Error:", error);
+    console.error("Code:", error.code);
+    console.error("Command:", error.command);
+    console.error("Response:", error.response);
+
+    throw new Error("EMAIL_SEND_FAILED");
   }
 };
 

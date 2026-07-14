@@ -176,8 +176,8 @@ JWT_SECRET=your_jwt_secret
 ACCESS_TOKEN_EXPIRESIN=your_access_expiresin
 REFRESH_TOKEN_EXPIRESIN=your_refresh_expiresin
 FRONTEND_URL=http://localhost:3000
-EMAIL_USER=example@email.com
-EMAIL_PASS=your_email_password
+EMAIL_APP_USER=example@email.com
+EMAIL_APP_PASS=your_email_password
 ```
 
 ---

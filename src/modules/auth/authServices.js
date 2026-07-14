@@ -4,60 +4,69 @@ const createTokens = require("../../utils/createTokens");
 const User = require("../users/userModel");
 const { JWT_SECRET, ACCESS_TOKEN_EXPIRESIN } = require("../../configs/config");
 
-
 const signUpUserService = async (req, res) => {
   const { name, email, password } = req.body;
 
-
   const exists = await User.findOne({ email });
-  if (exists) { throw new Error("USER_ALREADY_EXIST") }
-  
+  if (exists) {
+    throw new Error("USER_ALREADY_EXIST");
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10);
-  
+  const username = email.split("@")[0].split("+")[0];
+
   const user = await User.create({
-    name, email,
+    name,
+    email,
+    username,
     password: hashedPassword,
   });
-  
-  const username = email.split("@")[0].split("+")[0];
+
   const { accessToken, refreshToken } = createTokens(res, user);
-  
-  user.username = username;
   user.refreshToken = refreshToken;
   await user.save();
-  
+
+  const userObj = user.toObject();
+
+  delete userObj.password;
+  delete userObj.refreshToken;
+  delete userObj.passResetToken;
+  delete userObj.__v;
+
   return {
     message: "User registered successfully",
-    user,
+    user: userObj,
     accessToken,
   };
 };
 
-
-
 const signInUserService = async (req, res) => {
-  
-  const { email, password } = req.body
+  const { email, password } = req.body;
 
   const user = await User.findOne({ email }).select("+password");
-  if (!user) throw new Error("User not found");
+  if (!user) throw new Error("Invalid email or password");
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new Error("Invalid credentials");
+  if (!isMatch) throw new Error("Invalid email or password");
 
   const { accessToken, refreshToken } = createTokens(res, user);
 
   user.refreshToken = refreshToken;
   await user.save();
+
+  const userObj = user.toObject();
+
+  delete userObj.password;
+  delete userObj.refreshToken;
+  delete userObj.passResetToken;
+  delete userObj.__v;
 
   return {
     message: "Login successfull",
-    user,
+    user: userObj,
     accessToken,
   };
 };
-
-
 
 const logOutUserService = async (refreshToken) => {
   if (!refreshToken) {
@@ -73,27 +82,31 @@ const logOutUserService = async (refreshToken) => {
   return true;
 };
 
-const refreshAccessTokenService = (req, res) => {
+const refreshAccessTokenService = (req) => {
   const refreshToken = req.cookies.refreshToken;
+
   if (!refreshToken) {
-    return res.status(400).json({ message: "No refresh token found" });
+    throw new Error("NO_REFRESH_TOKEN");
   }
 
-  jwt.verify(refreshToken, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: "Invalid refresh token" });
-    }
+  const decoded = jwt.verify(refreshToken, JWT_SECRET);
 
-    const newAccessToken = jwt.sign(
-      { id: decoded.id, email: decoded.email, role: decoded.role },
-      JWT_SECRET,
-      { expiresIn: `${ACCESS_TOKEN_EXPIRESIN}` }
-    );
-    return res.status(200).json({ accessToken: newAccessToken });
-  });
+  const newAccessToken = jwt.sign(
+    {
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role,
+    },
+    JWT_SECRET,
+    {
+      expiresIn: ACCESS_TOKEN_EXPIRESIN,
+    },
+  );
+
+  return {
+    accessToken: newAccessToken,
+  };
 };
-
-
 
 module.exports = {
   signUpUserService,

@@ -1,14 +1,20 @@
 const User = require("../users/userModel");
-const { signUpUserService, signInUserService, logOutUserService, refreshAccessTokenService, } = require("./authServices");
+const {
+  signUpUserService,
+  signInUserService,
+  logOutUserService,
+  refreshAccessTokenService,
+} = require("./authServices");
 
-
-const signUpUser = async (req, res) => {  
+const signUpUser = async (req, res) => {
   try {
     const result = await signUpUserService(req, res);
     res.status(201).json(result);
   } catch (error) {
     if (error.message === "USER_ALREADY_EXIST") {
-      return res.status(409).json({ message: "User already exists with this emaill" });
+      return res
+        .status(409)
+        .json({ message: "User already exists with this emaill" });
     }
     res.status(500).send({ message: error.message });
   }
@@ -23,6 +29,49 @@ const signInUser = async (req, res) => {
   }
 };
 
+const logOutUser = async (req, res) => {
+  try {
+    await logOutUserService(req.cookies?.refreshToken);
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
+
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    if (error.message === "NO_REFRESH_TOKEN") {
+      return res.status(400).json({ message: "No refresh token found" });
+    }
+
+    return res.status(500).json({ message: "Logout failed" });
+  }
+};
+
+const refreshAccessToken = (req, res) => {
+  try {
+    const result = refreshAccessTokenService(req);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    if (error.name === "JsonWebTokenError") {
+      return res.status(403).json({
+        message: "Invalid refresh token",
+      });
+    }
+
+    if (error.message === "NO_REFRESH_TOKEN") {
+      return res.status(400).json({
+        message: "No refresh token found",
+      });
+    }
+
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 
 const googleLogin = async (req, res) => {
   try {
@@ -54,37 +103,6 @@ const googleLogin = async (req, res) => {
 };
 
 
-const logOutUser = async (req, res) => {
-  try {
-    await logOutUserService(req.cookies?.refreshToken);
-
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-    });
-
-    return res.status(200).json({ message: "Logged out successfully" });
-
-  } catch (error) {
-    if (error.message === "NO_REFRESH_TOKEN") {
-      return res.status(400).json({ message: "No refresh token found" });
-    }
-
-    return res.status(500).json({ message: "Logout failed" });
-  }
-};
-
-const refreshAccessToken = (req, res) => {
-  try {
-    const result = refreshAccessTokenService(req, res);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-
 
 module.exports = {
   signUpUser,
@@ -93,7 +111,3 @@ module.exports = {
   logOutUser,
   refreshAccessToken,
 };
-
-
-
-

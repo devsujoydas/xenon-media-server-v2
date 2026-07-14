@@ -12,11 +12,10 @@ const verifyToken = async (req) => {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, JWT_SECRET); 
 
-    const user = await User.findById(decoded.id).select("-password -refreshToken");
+    const user = await User.findById(decoded.id).select("_id, email");
     if (!user) {
-      return { error: { status: 404, message: "USER NOT FOUND" } };
+      return { error: { status: 404, message: "Unauthorized access, Please Sign In!" } };
     }
-
     return { decoded };
   } catch (error) {
     return { error: { status: 403, message: "Unauthorized access, Please Sign In!" } };
