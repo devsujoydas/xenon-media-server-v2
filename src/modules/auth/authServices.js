@@ -96,6 +96,9 @@ const refreshAccessTokenService = (req) => {
       id: decoded.id,
       email: decoded.email,
       role: decoded.role,
+      username: decoded.username,
+      profileImage: decoded.profileImage,
+      isVerified: decoded.isVerified,
     },
     JWT_SECRET,
     {

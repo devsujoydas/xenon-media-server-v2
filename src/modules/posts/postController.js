@@ -4,13 +4,12 @@ const {
   createPostServices,
   deletePostServices,
   updatePostServices,
-
   getMyPostsServices,
   getUserPostsServices,
   savePostServices,
   getMySavedPostsService,
-  deleteCommentService,
   createCommentService,
+  deleteCommentService,
   getCommentsService,
   updateCommentService,
   manageDislikeService,
@@ -18,203 +17,189 @@ const {
   toggleReactService,
 } = require("./postServices");
 
+// Single source of truth for error -> HTTP status/message mapping.
+// Every controller below now goes through this instead of each one
+// re-implementing its own ad-hoc switch/if chain.
+const ERROR_MAP = {
+  INVALID_AUTHOR_ID: [400, "Invalid author id"],
+  INVALID_USER_ID: [400, "Invalid user id"],
+  INVALID_POST_ID: [400, "Invalid post id"],
+  INVALID_COMMENT_ID: [400, "Invalid comment id"],
+  ALL_FIELDS_REQUIRED: [400, "Title and content are required"],
+  TEXT_REQUIRED: [400, "Comment text is required"],
+  POST_ID_AND_COMMENT_ID_REQUIRED: [400, "Post id and comment id are required"],
+
+  POST_NOT_FOUND: [404, "Post not found"],
+  USER_NOT_FOUND: [404, "User not found"],
+  COMMENT_NOT_FOUND: [404, "Comment not found"],
+
+  UNAUTHORIZED: [403, "You are not allowed to do this"],
+  UNAUTHORIZED_TO_UPDATE_COMMENT: [403, "You are not allowed to update this comment"],
+  UNAUTHORIZED_TO_DELETE_COMMENT: [403, "You are not allowed to delete this comment"],
+};
+
 const handlePostError = (res, error) => {
   console.error(error);
 
-  switch (error.message) {
-    case "INVALID_AUTHOR_ID":
-      return res.status(400).json({
-        message: "Invalid author id",
-      });
-
-    case "INVALID_USER_ID":
-      return res.status(400).json({
-        message: "Invalid user id",
-      });
-
-    case "INVALID_POST_ID":
-      return res.status(400).json({
-        message: "Invalid post id",
-      });
-
-    case "POST_NOT_FOUND":
-      return res.status(404).json({
-        message: "Post not found",
-      });
-
-    default:
-      return res.status(500).json({
-        message: "Internal server error",
-      });
-  }
+  const [status, message] = ERROR_MAP[error.message] || [500, "Internal server error"];
+  return res.status(status).json({ message });
 };
+
+// ---------------- POSTS: read ----------------
 
 const getPosts = async (req, res) => {
   try {
     const result = await getPostsServices(req);
-
     res.status(200).json(result);
   } catch (error) {
     handlePostError(res, error);
   }
 };
+
 const getMyPosts = async (req, res) => {
   try {
     const result = await getMyPostsServices(req);
-
     res.status(200).json(result);
   } catch (error) {
     handlePostError(res, error);
   }
 };
+
 const getUserPosts = async (req, res) => {
   try {
     const result = await getUserPostsServices(req);
-
     res.status(200).json(result);
   } catch (error) {
     handlePostError(res, error);
   }
 };
+
 const getPost = async (req, res) => {
   try {
-    const post = await getPostServices(req.params.postId);
-
+    const post = await getPostServices(req.params.postId, req.user?.id);
     res.status(200).json({ post });
   } catch (error) {
     handlePostError(res, error);
   }
 };
+
 const getMySavedPosts = async (req, res) => {
   try {
     const result = await getMySavedPostsService(req);
-
     res.status(200).json(result);
   } catch (error) {
-    console.error("Error fetching saved posts:", error);
-
-    if (error.message === "USER_NOT_FOUND") {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
-
-    res.status(500).json({
-      message: "Internal server error",
-    });
+    handlePostError(res, error);
   }
 };
+
+// ---------------- POSTS: write ----------------
 
 const createPost = async (req, res) => {
   try {
     const data = await createPostServices(req);
     res.status(201).json(data);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+  } catch (error) {
+    handlePostError(res, error);
   }
 };
+
 const updatePost = async (req, res) => {
   try {
     const data = await updatePostServices(req);
-    res.json({ message: "Post updated", post: data });
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(200).json({ message: "Post updated", post: data });
+  } catch (error) {
+    handlePostError(res, error);
   }
 };
+
 const deletePost = async (req, res) => {
   try {
     const data = await deletePostServices(req.user, req.params.postId);
-    res.json(data);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(200).json(data);
+  } catch (error) {
+    handlePostError(res, error);
   }
 };
 
 const savePost = async (req, res) => {
   try {
     const { message } = await savePostServices(req);
-    res.json({ message });
+    res.status(200).json({ message });
   } catch (error) {
-    if (error.message === "POST_NOT_FOUND") {
-      return res.status(400).json({ message: "Post not found" });
-    }
-    console.error("Error Saving post:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-// REACT
-const toggleReact = async (req, res) => {
-  try {
-    const data = await toggleReactService(req);
-    res.json(data);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    handlePostError(res, error);
   }
 };
 
-// comments
+// ---------------- REACT ----------------
+
+const toggleReact = async (req, res) => {
+  try {
+    const data = await toggleReactService(req);
+    res.status(200).json(data);
+  } catch (error) {
+    handlePostError(res, error);
+  }
+};
+
+// ---------------- COMMENTS ----------------
+
 const getComments = async (req, res) => {
   try {
     const comments = await getCommentsService(req);
     res.status(200).json(comments);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+  } catch (error) {
+    handlePostError(res, error);
   }
 };
+
 const createComment = async (req, res) => {
   try {
     const result = await createCommentService(req);
     res.status(201).json(result);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+  } catch (error) {
+    handlePostError(res, error);
   }
 };
+
 const updateComment = async (req, res) => {
   try {
     const updatedComment = await updateCommentService(req);
     res.status(200).json(updatedComment);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+  } catch (error) {
+    handlePostError(res, error);
   }
 };
+
 const deleteComment = async (req, res) => {
   try {
     const result = await deleteCommentService(req);
     res.status(200).json(result);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+  } catch (error) {
+    handlePostError(res, error);
   }
 };
 
 const manageLike = async (req, res) => {
   try {
     const result = await manageLikeService(req);
-    res.json(result);
+    res.status(200).json(result);
   } catch (error) {
-    if (error.message === "POST_NOT_FOUND") {
-      return res.status(400).json({ message: "Post not found" });
-    }
-    console.error("Error liking post:", error);
-    res.status(500).json({ message: "Internal server error" });
+    handlePostError(res, error);
   }
 };
+
 const manageDislike = async (req, res) => {
   try {
     const result = await manageDislikeService(req);
-    res.json(result);
+    res.status(200).json(result);
   } catch (error) {
-    if (error.message === "POST_NOT_FOUND") {
-      return res.status(400).json({ message: "Post not found" });
-    }
-    console.error("Error liking post:", error);
-    res.status(500).json({ message: "Internal server error" });
+    handlePostError(res, error);
   }
 };
 
 module.exports = {
   getPosts,
   getUserPosts,
-
   getMyPosts,
   getMySavedPosts,
 

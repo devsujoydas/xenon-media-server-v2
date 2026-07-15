@@ -10,6 +10,8 @@ const createTokens = (res, user) => {
     {
       id: user._id,
       email: user.email,
+      username: user.username,
+      profileImage: user.profileImage,
       role: user.role,
       isVerified: user.isVerified,
     },
@@ -20,6 +22,8 @@ const createTokens = (res, user) => {
     {
       id: user._id,
       email: user.email,
+      username: user.username,
+      profileImage: user.profileImage,
       role: user.role,
       isVerified: user.isVerified,
     },

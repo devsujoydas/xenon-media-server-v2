@@ -1,9 +1,9 @@
 const buildNestedUpdateFields = require("../../utils/buildNestedUpdateFields");
+const shuffleArray = require("../../utils/helpers/shuffleArray");
 const {
   deleteImageFromCloudinary,
   uploadImageToCloudinary,
-} = require("../../utils/ImageUploads/uploadService");
-const shuffleArray = require("../../utils/shuffleArray");
+} = require("../../utils/ImageUploads/uploadService"); 
 const Post = require("../posts/postModel");
 const User = require("./userModel");
 
