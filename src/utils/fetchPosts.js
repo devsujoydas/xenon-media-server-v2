@@ -1,35 +1,48 @@
-const Comment = require("../modules/posts/commentModel");
-const Post = require("../modules/posts/postModel"); 
-const shuffleArray = require("./shuffleArray");
+const fetchPosts = async (filter = {}, options = {}) => {
+  const {
+    populateAuthor = true,
+    shuffle = false,
+    sort = { createdAt: -1 },
+    userId = null,
+  } = options;
 
-const fetchPosts = async (filter, userId) => {
-    const posts = await Post
-        .find(filter)
-        .populate("author", "name username profile.profilePhoto")
-        .populate("likes", "name username profile.profilePhoto");
+  let query = Post.find(filter)
+    .select("-__v")
+    .sort(sort);
 
-    const shuffledPost = shuffleArray(posts);
+  if (populateAuthor) {
+    query = query.populate("author", "name username profileImage");
+  }
 
-    // use Promise.all to resolve async map
-    const postsWithLikes = await Promise.all(
-        shuffledPost.map(async (post) => {
-            const commentCount = await Comment.countDocuments({ postId: post._id });
-            const postObj = post.toObject();
-            return {
-                ...postObj,
-                commentCount,
-                likesCount: postObj.likes.length,
-                likedByMe: userId
-                    ? postObj.likes.some(u => u._id.equals(userId))
-                    : false
-            };
-        })
-    );
+  const posts = await query;
 
-    return {
-        totalPosts: posts.length,
-        posts: postsWithLikes
-    };
+  const postsWithCount = await Promise.all(
+    posts.map(async (post) => {
+      const commentCount = await Comment.countDocuments({
+        post: post._id,
+      });
+
+      let reacted = false;
+
+      if (userId) {
+        reacted = post.reacts.some(
+          (id) => id.toString() === userId.toString()
+        );
+      }
+
+      return {
+        ...post.toObject(),
+        commentCount,
+        reacted,
+        reactCount: post.reacts.length,
+      };
+    })
+  );
+
+  return {
+    totalPosts: postsWithCount.length,
+    posts: shuffle ? shuffleArray(postsWithCount) : postsWithCount,
+  };
 };
 
 module.exports = fetchPosts;

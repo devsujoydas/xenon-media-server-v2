@@ -85,16 +85,13 @@ const updateProfile = async (req, res) => {
   }
 };
 
-
-
-
 const uploadProfilePhoto = async (req, res) => {
   try {
     const user = await updateUserImageService(
       req.user.id,
       req.file,
       "profileImage",
-      "profile_photos"
+      "profile_photos",
     );
 
     res.status(200).json({
@@ -116,7 +113,7 @@ const uploadCoverPhoto = async (req, res) => {
       req.user.id,
       req.file,
       "coverImage",
-      "cover_photos"
+      "cover_photos",
     );
 
     res.status(200).json({
@@ -131,9 +128,6 @@ const uploadCoverPhoto = async (req, res) => {
     });
   }
 };
-
-
-
 
 const deleteProfile = async (req, res) => {
   try {
