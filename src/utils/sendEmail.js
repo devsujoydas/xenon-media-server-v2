@@ -11,12 +11,7 @@ const transporter = nodemailer.createTransport({
   connectionTimeout: 10000,
   greetingTimeout: 10000,
   socketTimeout: 10000,
-  logger: true,
-  debug: true,
 });
-
-console.log(process.env.EMAIL_APP_USER);
-console.log(process.env.EMAIL_APP_PASS?.length);
 
 const sendEmail = async ({
   to,
@@ -25,9 +20,6 @@ const sendEmail = async ({
   text = "Please open this email in an HTML compatible email client.",
 }) => {
   try {
-    console.log("Enterd Send Email");
-    console.log("Before sendMail");
-
     const info = await transporter.sendMail({
       from: `"Xenly Support" <${process.env.EMAIL_APP_USER}>`,
       to,
@@ -35,9 +27,6 @@ const sendEmail = async ({
       html,
       text,
     });
-
-    console.log("After sendMail");
-    console.log(info);
 
     console.log(`📨 Email sent: ${info.messageId}`);
 

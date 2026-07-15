@@ -1,29 +1,26 @@
- const {
+const {
   getAllUsersService,
   getMyProfileService,
   updateProfileService,
   deleteProfileService,
   activeStatusServicess,
   getUsersProfileService,
+  updateUserImageService,
 } = require("./userServices");
-
-
 
 const getUsers = async (req, res) => {
   try {
-    const { users, userCounts } = await getAllUsersService(req)
+    const { users, userCounts } = await getAllUsersService(req);
     res.json({ userCounts, users });
   } catch (error) {
     console.error(error);
     res.status(500).send("Server error");
   }
-}
+};
 
-
-
-const getMyProfile = async (req, res) => { 
+const getMyProfile = async (req, res) => {
   try {
-    const user = await getMyProfileService(req)
+    const user = await getMyProfileService(req);
     res.status(200).json(user);
   } catch (error) {
     if (error.message === "UNAUTHORIZE") {
@@ -34,12 +31,11 @@ const getMyProfile = async (req, res) => {
     }
     res.status(500).json({ message: "Server error" });
   }
-}
-
+};
 
 const getUsersProfile = async (req, res) => {
   try {
-    const user = await getUsersProfileService(req)
+    const user = await getUsersProfileService(req);
     res.status(200).json(user);
   } catch (error) {
     if (error.message === "USER_NOT_FOUND") {
@@ -47,7 +43,7 @@ const getUsersProfile = async (req, res) => {
     }
     res.status(500).json({ message: "Server error" });
   }
-}
+};
 
 const updateProfile = async (req, res) => {
   try {
@@ -57,9 +53,7 @@ const updateProfile = async (req, res) => {
       message: "Profile updated successfully",
       user: updatedUser,
     });
-
   } catch (error) {
-
     if (error.message === "USERNAME_ALREADY_EXISTS") {
       return res.status(409).json({
         message: "This username already exists",
@@ -91,6 +85,56 @@ const updateProfile = async (req, res) => {
   }
 };
 
+
+
+
+const uploadProfilePhoto = async (req, res) => {
+  try {
+    const user = await updateUserImageService(
+      req.user.id,
+      req.file,
+      "profileImage",
+      "profile_photos"
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Profile photo updated successfully.",
+      user,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const uploadCoverPhoto = async (req, res) => {
+  try {
+    const user = await updateUserImageService(
+      req.user.id,
+      req.file,
+      "coverImage",
+      "cover_photos"
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Cover photo updated successfully.",
+      user,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
+
 const deleteProfile = async (req, res) => {
   try {
     const result = await deleteProfileService(req);
@@ -98,7 +142,6 @@ const deleteProfile = async (req, res) => {
       message: "Account deleted successfully",
       ...result,
     });
-
   } catch (error) {
     if (error.message === "EMAIL_REQUIRED") {
       return res.status(400).json({ message: "Email is required" });
@@ -112,12 +155,6 @@ const deleteProfile = async (req, res) => {
 };
 
 const activeStatus = async (req, res) => {
-
-
-
-
-
-
   const userId = req.user.id;
 
   try {
@@ -135,19 +172,16 @@ const activeStatus = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
-
 module.exports = {
   getUsers,
   getUsersProfile,
 
   getMyProfile,
   updateProfile,
+
+  uploadProfilePhoto,
+  uploadCoverPhoto,
+
   deleteProfile,
   activeStatus,
 };

@@ -1,4 +1,8 @@
 const buildNestedUpdateFields = require("../../utils/buildNestedUpdateFields");
+const {
+  deleteImageFromCloudinary,
+  uploadImageToCloudinary,
+} = require("../../utils/ImageUploads/uploadService");
 const shuffleArray = require("../../utils/shuffleArray");
 const Post = require("../posts/postModel");
 const User = require("./userModel");
@@ -54,7 +58,7 @@ const updateProfileService = async (req) => {
 
   const id = req.user?.id;
   if (!id) throw new Error("USER_NOT_FOUND");
-  
+
   const updateFields = {};
 
   if (typeof name === "string" && name.trim()) {
@@ -94,8 +98,8 @@ const updateProfileService = async (req) => {
 
   const updatedUser = await User.findByIdAndUpdate(
     id,
-    { $set: updateFields, },
-    { new: true, runValidators: true, },
+    { $set: updateFields },
+    { new: true, runValidators: true },
   ).lean();
 
   if (!updatedUser) {
@@ -106,12 +110,58 @@ const updateProfileService = async (req) => {
 };
 
 
+
+
+
+const updateUserImageService = async (userId, file, field, folder) => {
+  if (!file) {
+    throw new Error("No image selected.");
+  }
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new Error("User not found.");
+  }
+
+  // পুরনো image-এর publicId রেখে দিচ্ছি
+  const oldPublicId = user[field]?.publicId;
+
+  // নতুন image upload
+  const uploadedImage = await uploadImageToCloudinary(
+    file.buffer,
+    folder
+  );
+
+  // Database update
+  user[field] = {
+    url: uploadedImage.url,
+    publicId: uploadedImage.publicId,
+  };
+
+  await user.save();
+
+  // Database save সফল হলে পুরনো image delete
+  if (oldPublicId) {
+    await deleteImageFromCloudinary(oldPublicId);
+  }
+
+  return user;
+};
+
+
+
+
+
+
+
+
 const deleteProfileService = async (req) => {
   const id = req.user.id;
 
   const user = await User.findById(id);
   if (!user) throw new Error("USER_NOT_FOUND");
-  
+
   const userDeleted = await User.deleteOne({ _id: id });
   const postsDeleted = await Post.deleteMany({ author: id });
   const likesUpdated = await Post.updateMany(
@@ -175,6 +225,9 @@ module.exports = {
 
   getMyProfileService,
   updateProfileService,
+
+  updateUserImageService,
+
   deleteProfileService,
   activeStatusServicess,
 };

@@ -25,12 +25,8 @@ const verifyResetToken = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    const { newPassword, confirmNewPassword, token } = req.body;
-    const message = await resetPasswordService(
-      token,
-      newPassword,
-      confirmNewPassword,
-    );
+    
+    const message = await resetPasswordService(req);
     res.status(200).json({ message });
   } catch (err) {
     res.status(400).json({ message: err.message });

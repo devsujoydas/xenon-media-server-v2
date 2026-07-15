@@ -13,7 +13,8 @@ const userSchema = new mongoose.Schema(
     refreshToken: { type: String, default: "", select: false, },
     passResetToken: { type: String, default: "", select: false, },
 
-    profileImage: { url: { type: String, default: "/default_profile.webp", },
+    profileImage: { 
+      url: { type: String, default: "/default_profile.webp", },
       publicId: { type: String, default: "", },
     },
     coverImage: {

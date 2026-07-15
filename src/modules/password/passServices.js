@@ -7,7 +7,6 @@ const { FRONTEND_URL, JWT_SECRET } = require("../../configs/config");
 const verifyPassResetToken = require("../../utils/verifyPassResetToken");
 
 const requestPasswordResetService = async (email) => {
-  console.log("hit this route")
   if (!email) throw new Error("EMAIL_REQUIRED");
 
   const user = await User.findOne({ email });
@@ -37,8 +36,11 @@ const verifyResetTokenService = async (req) => {
   return "Reset link is valid";
 };
 
-const resetPasswordService = async (token, newPassword, confirmNewPassword) => {
+const resetPasswordService = async (req) => {
+  const { newPassword, confirmNewPassword } = req.body;
+  const token = req.query.token;
   if (!token) throw new Error("TOKEN_REQUIRED");
+
   if (
     !newPassword ||
     !confirmNewPassword ||
@@ -64,18 +66,9 @@ const changePasswordService = async (req) => {
   const np = newPassword?.trim();
   const confirm = confirmNewPassword?.trim();
 
-  // basic check only
-  if (!current || !np || !confirm) {
-    throw new Error("ALL_FIELDS_REQUIRED");
-  }
-
-  if (np !== confirm) {
-    throw new Error("PASSWORD_MISMATCH");
-  }
-
-  if (np.length < 8) {
-    throw new Error("PASSWORD_TOO_SHORT");
-  }
+  if (!current || !np || !confirm) throw new Error("ALL_FIELDS_REQUIRED");
+  if (np !== confirm) throw new Error("PASSWORD_MISMATCH");
+  if (np.length < 8) throw new Error("PASSWORD_TOO_SHORT");
 
   const user = await User.findById(req.user.id).select("+password");
   if (!user) throw new Error("USER_NOT_FOUND");
