@@ -1,14 +1,14 @@
 const express = require("express");
 const { makeAdmin, removeAdmin, deleteUserByAdmin, deletePostByAdmin, deleteCommentByAdmin } = require("./adminControllers");
-const isVerifyAdmin = require("../../middlewares/verifyAdmin");
+const authorizeRoles = require("../../middlewares/authorizeRoles");
 const router = express.Router()
 
 
-router.put("/make/:userId", isVerifyAdmin, makeAdmin);
-router.put("/remove/:userId", isVerifyAdmin, removeAdmin);
+router.put("/make/:userId", authorizeRoles("admin"), makeAdmin);
+router.put("/remove/:userId", authorizeRoles("admin"), removeAdmin);
 
-router.delete("/users/:userId", isVerifyAdmin, deleteUserByAdmin);
-router.delete("/posts/:postId", isVerifyAdmin, deletePostByAdmin);
-router.delete("/comments/:commentId", isVerifyAdmin, deleteCommentByAdmin);
+router.delete("/users/:userId", authorizeRoles("admin"), deleteUserByAdmin);
+router.delete("/posts/:postId", authorizeRoles("admin"), deletePostByAdmin);
+router.delete("/comments/:commentId", authorizeRoles("admin"), deleteCommentByAdmin);
 
 module.exports = router 

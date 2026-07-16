@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
-const isVerifyUser = require("../../middlewares/verifyUser");
+ 
 const {
     getMyConnections,
     addFriend,
@@ -11,21 +10,22 @@ const {
     unfriend,
     youMayKnowController
 } = require("./friendController");
+const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 
 
 
-router.put("/friend/:userId/addfriend", isVerifyUser, addFriend);
-router.put("/friend/:userId/cancel-sent-request", isVerifyUser, cancelSentRequest);
-router.put("/friend/:userId/confirmfriend", isVerifyUser, confirmFriend);
-router.put("/friend/:userId/cancel-received-request", isVerifyUser, cancelReceivedRequest);
-router.put("/friend/:userId/unfriend", isVerifyUser, unfriend);
+router.put("/friend/:userId/addfriend", authorizeRoles(), addFriend);
+router.put("/friend/:userId/cancel-sent-request", authorizeRoles(), cancelSentRequest);
+router.put("/friend/:userId/confirmfriend", authorizeRoles(), confirmFriend);
+router.put("/friend/:userId/cancel-received-request", authorizeRoles(), cancelReceivedRequest);
+router.put("/friend/:userId/unfriend", authorizeRoles(), unfriend);
 
 
 
 
-router.get("/myConnections", isVerifyUser, getMyConnections);  
-router.get("/youMayKnow", isVerifyUser, youMayKnowController); 
+router.get("/myConnections", authorizeRoles(), getMyConnections);  
+router.get("/youMayKnow", authorizeRoles(), youMayKnowController); 
 
 
 

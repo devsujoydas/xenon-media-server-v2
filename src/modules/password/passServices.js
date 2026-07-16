@@ -70,7 +70,7 @@ const changePasswordService = async (req) => {
   if (np !== confirm) throw new Error("PASSWORD_MISMATCH");
   if (np.length < 8) throw new Error("PASSWORD_TOO_SHORT");
 
-  const user = await User.findById(req.user.id).select("+password");
+  const user = await User.findById(req.user?._id).select("+password");
   if (!user) throw new Error("USER_NOT_FOUND");
 
   const isMatch = await bcrypt.compare(current, user.password);

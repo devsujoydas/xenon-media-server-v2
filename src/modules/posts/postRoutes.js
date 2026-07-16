@@ -19,33 +19,33 @@ const {
   manageLike,
   toggleReact,
 } = require("./postController");
-
-const isVerifyUser = require("../../middlewares/verifyUser");
+ 
 const upload = require("../../utils/ImageUploads/multer");
+const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 // ---------------- POSTS: read ----------------
-router.get("/", isVerifyUser, getPosts);
-router.get("/user/:userId", isVerifyUser, getUserPosts);
-router.get("/me", isVerifyUser, getMyPosts);
-router.get("/me/saved", isVerifyUser, getMySavedPosts);
-router.get("/post/:postId", isVerifyUser, getPost);
+router.get("/", authorizeRoles(), getPosts);
+router.get("/user/:userId", authorizeRoles(), getUserPosts);
+router.get("/me", authorizeRoles(), getMyPosts);
+router.get("/me/saved", authorizeRoles(), getMySavedPosts);
+router.get("/post/:postId", authorizeRoles(), getPost);
 
 // ---------------- POSTS: write ----------------
-router.post("/", isVerifyUser, upload.single("image"), createPost);
-router.put("/post/:postId", isVerifyUser, upload.single("image"), updatePost);
-router.delete("/post/:postId", isVerifyUser, deletePost);
-router.put("/post/:postId/save", isVerifyUser, savePost);
+router.post("/", authorizeRoles(), upload.single("image"), createPost);
+router.put("/post/:postId", authorizeRoles(), upload.single("image"), updatePost);
+router.delete("/post/:postId", authorizeRoles(), deletePost);
+router.put("/post/:postId/save", authorizeRoles(), savePost);
 
 // ---------------- REACT ----------------
-router.patch("/post/:postId/react", isVerifyUser, toggleReact);
+router.patch("/post/:postId/react", authorizeRoles(), toggleReact);
 
 // ---------------- COMMENTS ----------------
-router.get("/post/:postId/comments", isVerifyUser, getComments);
-router.post("/post/:postId/comment", isVerifyUser, createComment);
+router.get("/post/:postId/comments", authorizeRoles(), getComments);
+router.post("/post/:postId/comment", authorizeRoles(), createComment);
 
-router.put("/comment/:commentId", isVerifyUser, updateComment);
-router.delete("/comment/:commentId", isVerifyUser, deleteComment);
-router.put("/comment/:commentId/like", isVerifyUser, manageLike);
-router.put("/comment/:commentId/dislike", isVerifyUser, manageDislike);
+router.put("/comment/:commentId", authorizeRoles(), updateComment);
+router.delete("/comment/:commentId", authorizeRoles(), deleteComment);
+router.put("/comment/:commentId/like", authorizeRoles(), manageLike);
+router.put("/comment/:commentId/dislike", authorizeRoles(), manageDislike);
 
 module.exports = router;

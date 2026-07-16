@@ -39,20 +39,20 @@ const getPostsServices = async (req) => {
 
   return fetchPosts(filter, {
     shuffle: true,
-    userId: req.user?.id,
+    userId: req.user?._id,
     page: page ? Number(page) : null,
     limit: limit ? Number(limit) : null,
   });
 };
 
 const getMyPostsServices = async (req) => {
-  const filter = { author: req.user.id };
+  const filter = { author: req.user?._id };
 
   if (req.query.search) {
     filter.content = { $regex: req.query.search, $options: "i" };
   }
 
-  return fetchPosts(filter, { userId: req.user.id });
+  return fetchPosts(filter, { userId: req.user?._id });
 };
 
 const getUserPostsServices = async (req) => {
@@ -66,7 +66,7 @@ const getUserPostsServices = async (req) => {
     filter.content = { $regex: req.query.search, $options: "i" };
   }
 
-  return fetchPosts(filter, { userId: req.user?.id });
+  return fetchPosts(filter, { userId: req.user?._id });
 };
 
 const getPostServices = async (postId, userId) => {
@@ -92,7 +92,7 @@ const getPostServices = async (postId, userId) => {
 };
 
 const getMySavedPostsService = async (req) => {
-  const userId = req.user.id;
+  const userId = req.user?._id;
 
   const user = await User.findById(userId).select("savePosts");
   if (!user) throw new Error("USER_NOT_FOUND");
@@ -124,14 +124,14 @@ const createPostServices = async (req) => {
     title,
     content,
     postImg: image,
-    author: req.user.id,
+    author: req.user?._id,
   });
 
   return {
     post: {
       ...createdPost.toObject(),
       author: {
-        _id: req.user.id,
+        _id: req.user?._id,
         name: req.user.name,
         username: req.user.username,
         profileImage: req.user.profileImage,
@@ -151,13 +151,11 @@ const updatePostServices = async (req) => {
   const post = await Post.findById(postId);
   if (!post) throw new Error("POST_NOT_FOUND");
 
-  if (!post.author.equals(req.user.id)) throw new Error("UNAUTHORIZED");
+  if (!post.author.equals(req.user?._id)) throw new Error("UNAUTHORIZED");
 
   if (req.body.title) post.title = req.body.title;
   if (req.body.content) post.content = req.body.content;
 
-  // Restored: this was dead code before (commented out), so image
-  // replacement on update never actually worked.
   if (req.file) {
     if (post.postImg?.publicId) {
       await deleteImageFromCloudinary(post.postImg.publicId);
@@ -190,7 +188,7 @@ const deletePostServices = async (user, postId) => {
 };
 
 const savePostServices = async (req) => {
-  const userId = req.user.id;
+  const userId = req.user?._id;
   const { postId } = req.params;
 
   if (!isValidId(postId)) throw new Error("INVALID_POST_ID");
@@ -229,13 +227,13 @@ const toggleReactService = async (req) => {
   if (!post) throw new Error("POST_NOT_FOUND");
 
   const exists = post.reacts.some(
-    (id) => id.toString() === req.user.id.toString(),
+    (id) => id.toString() === req.user?._id.toString(),
   );
 
   if (exists) {
-    post.reacts.pull(req.user.id);
+    post.reacts.pull(req.user?._id);
   } else {
-    post.reacts.addToSet(req.user.id);
+    post.reacts.addToSet(req.user?._id);
   }
 
   await post.save();
@@ -260,7 +258,7 @@ const getCommentsService = async (req) => {
   let comments = await populateComment(Comment.find({ post: postId })).lean();
 
   comments = comments.map((comment) =>
-    buildCommentResponse(comment, req.user.id),
+    buildCommentResponse(comment, req.user?._id),
   );
 
   if (sort === "recent") {
@@ -290,7 +288,7 @@ const createCommentService = async (req) => {
 
   let comment = await Comment.create({
     text,
-    author: req.user.id,
+    author: req.user?._id,
     post: postId,
   });
 
@@ -298,7 +296,7 @@ const createCommentService = async (req) => {
 
   return {
     message: "Comment created successfully",
-    comment: buildCommentResponse(comment, req.user.id),
+    comment: buildCommentResponse(comment, req.user?._id),
   };
 };
 
@@ -312,7 +310,7 @@ const updateCommentService = async (req) => {
 
   if (!comment) throw new Error("COMMENT_NOT_FOUND");
 
-  if (!comment.author.equals(req.user.id) && req.user.role !== "admin") {
+  if (!comment.author.equals(req.user?._id) && req.user.role !== "admin") {
     throw new Error("UNAUTHORIZED");
   }
 
@@ -324,7 +322,7 @@ const updateCommentService = async (req) => {
 
   return {
     message: "Comment updated successfully",
-    comment: buildCommentResponse(comment, req.user.id),
+    comment: buildCommentResponse(comment, req.user?._id),
   };
 };
 
@@ -337,7 +335,7 @@ const deleteCommentService = async (req) => {
 
   if (!comment) throw new Error("COMMENT_NOT_FOUND");
 
-  if (!comment.author.equals(req.user.id) && req.user.role !== "admin") {
+  if (!comment.author.equals(req.user?._id) && req.user.role !== "admin") {
     throw new Error("UNAUTHORIZED");
   }
 
@@ -357,13 +355,13 @@ const manageLikeService = async (req) => {
 
   if (!comment) throw new Error("COMMENT_NOT_FOUND");
 
-  const liked = comment.likes.some((id) => id.equals(req.user.id));
+  const liked = comment.likes.some((id) => id.equals(req.user?._id));
 
   if (liked) {
-    comment.likes.pull(req.user.id);
+    comment.likes.pull(req.user?._id);
   } else {
-    comment.likes.addToSet(req.user.id);
-    comment.disLikes.pull(req.user.id);
+    comment.likes.addToSet(req.user?._id);
+    comment.disLikes.pull(req.user?._id);
   }
 
   await comment.save();
@@ -371,7 +369,7 @@ const manageLikeService = async (req) => {
 
   return {
     message: liked ? "Unliked comment" : "Liked comment",
-    comment: buildCommentResponse(comment, req.user.id),
+    comment: buildCommentResponse(comment, req.user?._id),
   };
 };
 
@@ -382,13 +380,13 @@ const manageDislikeService = async (req) => {
 
   if (!comment) throw new Error("COMMENT_NOT_FOUND");
 
-  const disliked = comment.disLikes.some((id) => id.equals(req.user.id));
+  const disliked = comment.disLikes.some((id) => id.equals(req.user?._id));
 
   if (disliked) {
-    comment.disLikes.pull(req.user.id);
+    comment.disLikes.pull(req.user?._id);
   } else {
-    comment.disLikes.addToSet(req.user.id);
-    comment.likes.pull(req.user.id);
+    comment.disLikes.addToSet(req.user?._id);
+    comment.likes.pull(req.user?._id);
   }
 
   await comment.save();
@@ -396,7 +394,7 @@ const manageDislikeService = async (req) => {
   
   return {
     message: disliked ? "Removed dislike" : "Disliked comment",
-    comment: buildCommentResponse(comment, req.user.id),
+    comment: buildCommentResponse(comment, req.user?._id),
   };
 };
 

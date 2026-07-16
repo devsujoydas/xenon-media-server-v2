@@ -1,8 +1,8 @@
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const createTokens = require("../../utils/createTokens");
+const jwt = require("jsonwebtoken"); 
 const User = require("../users/userModel");
 const { JWT_SECRET, ACCESS_TOKEN_EXPIRESIN } = require("../../configs/config");
+const createTokens = require("../../utils/tokens/createTokens");
 
 const signUpUserService = async (req, res) => {
   const { name, email, password } = req.body;

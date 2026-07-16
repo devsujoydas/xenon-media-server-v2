@@ -76,7 +76,7 @@ const getUserPosts = async (req, res) => {
 
 const getPost = async (req, res) => {
   try {
-    const post = await getPostServices(req.params.postId, req.user?.id);
+    const post = await getPostServices(req.params.postId, req.user?._id);
     res.status(200).json({ post });
   } catch (error) {
     handlePostError(res, error);

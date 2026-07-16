@@ -88,7 +88,7 @@ const updateProfile = async (req, res) => {
 const uploadProfilePhoto = async (req, res) => {
   try {
     const user = await updateUserImageService(
-      req.user.id,
+      req.user?._id,
       req.file,
       "profileImage",
       "profile_photos",
@@ -110,7 +110,7 @@ const uploadProfilePhoto = async (req, res) => {
 const uploadCoverPhoto = async (req, res) => {
   try {
     const user = await updateUserImageService(
-      req.user.id,
+      req.user?._id,
       req.file,
       "coverImage",
       "cover_photos",
@@ -131,7 +131,7 @@ const uploadCoverPhoto = async (req, res) => {
 
 const deleteProfile = async (req, res) => {
   try {
-    const result = await deleteProfileService(req.user.id);
+    const result = await deleteProfileService(req.user?._id);
     return res.status(200).json({
       message: "Account deleted successfully",
       ...result,
@@ -149,7 +149,7 @@ const deleteProfile = async (req, res) => {
 };
 
 const activeStatus = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user?._id;
 
   try {
     const result = await activeStatusServicess(userId);

@@ -8,7 +8,7 @@ const User = require("../users/userModel");
 
 const getMyConnectionsService = async (req) => {
 
-  const user = await User.findById(req.user.id)
+  const user = await User.findById(req.user?._id)
     .populate("myFriends.userId", "name username profile.profilePhoto")
     .populate("sentRequests.userId", "name username profile.profilePhoto")
     .populate("receivedRequests.userId", "name username profile.profilePhoto");
@@ -70,7 +70,7 @@ const getYouMayKnowService = async (userId) => {
 
 
 const addFriendService = async (req) => {
-  const userId = new mongoose.Types.ObjectId(req.user.id);
+  const userId = new mongoose.Types.ObjectId(req.user?._id);
   const friendId = req.params.userId;
 
   if (!mongoose.Types.ObjectId.isValid(friendId)) throw new Error("INVALID_FRIEND_ID");
@@ -119,7 +119,7 @@ const addFriendService = async (req) => {
 };
 
 const cancelSentRequestService = async (req) => {
-  const userId = new mongoose.Types.ObjectId(req.user.id);
+  const userId = new mongoose.Types.ObjectId(req.user?._id);
   const friendId = req.params.userId;
 
   if (!mongoose.Types.ObjectId.isValid(friendId)) throw new Error("INVALID_FRIEND_ID");
@@ -148,7 +148,7 @@ const cancelSentRequestService = async (req) => {
 };
 
 const confirmFriendService = async (req) => {
-  const userId = new mongoose.Types.ObjectId(req.user.id);
+  const userId = new mongoose.Types.ObjectId(req.user?._id);
   const friendId = req.params.userId;
   const friendObjectId = new mongoose.Types.ObjectId(friendId);
 
@@ -184,7 +184,7 @@ const confirmFriendService = async (req) => {
 };
 
 const cancelReceivedRequestService = async (req) => {
-  const userId = new mongoose.Types.ObjectId(req.user.id);
+  const userId = new mongoose.Types.ObjectId(req.user?._id);
   const friendId = req.params.userId;
 
   if (!mongoose.Types.ObjectId.isValid(friendId)) throw new Error("INVALID_FRIEND_ID");
@@ -213,7 +213,7 @@ const cancelReceivedRequestService = async (req) => {
 };
 
 const unfriendService = async (req) => {
-  const userId = new mongoose.Types.ObjectId(req.user.id);
+  const userId = new mongoose.Types.ObjectId(req.user?._id);
   const friendId = req.params.userId;
 
   if (!mongoose.Types.ObjectId.isValid(friendId)) throw new Error("INVALID_FRIEND_ID");

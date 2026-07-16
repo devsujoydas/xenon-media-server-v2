@@ -9,7 +9,8 @@ const Post = require("../posts/postModel");
 const User = require("./userModel");
 
 const getAllUsersService = async (req) => {
-  const id = req.user?.id;
+  const id = req.user?._id;
+  console.log(req.user)
   if (!id) throw new Error("USER_ID_REQUIRED");
 
   const { search, role, online } = req.query;
@@ -35,11 +36,7 @@ const getAllUsersService = async (req) => {
 };
 
 const getMyProfileService = async (req) => {
-  if (!req.user?.id) throw new Error("UNAUTHORIZE");
-  const user = await User.findById(req.user.id).select(" ");
-
-  if (!user) throw new Error("USER_NOT_FOUND");
-  return user;
+  return req.user;
 };
 
 const getUsersProfileService = async (req) => {
@@ -57,7 +54,7 @@ const getUsersProfileService = async (req) => {
 const updateProfileService = async (req) => {
   const { name, username, bio, contactInfo, location } = req.body;
 
-  const id = req.user?.id;
+  const id = req.user?._id;
   if (!id) throw new Error("USER_NOT_FOUND");
 
   const updateFields = {};
@@ -216,7 +213,7 @@ const deleteProfileService = async (userId) => {
 
   return {
     success: true,
-    message: "Profile deleted successfully.",
+    message: `${user.name}'s Profile deleted successfully.`,
     userDeleted: userDeleted.deletedCount,
     postsDeleted: postsDeleted.deletedCount,
     userCommentsDeleted: userCommentsDeleted.deletedCount,

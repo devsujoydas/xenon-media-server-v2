@@ -27,7 +27,7 @@ const getMyConnections = async (req, res) => {
 
 const youMayKnowController = async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?._id;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
     const suggestions = await getYouMayKnowService(userId);

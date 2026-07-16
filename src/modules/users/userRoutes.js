@@ -12,33 +12,33 @@ const {
   uploadProfilePhoto,
   uploadCoverPhoto,
 } = require("./userController");
-const isVerifyUser = require("../../middlewares/verifyUser");
 const upload = require("../../utils/ImageUploads/multer");
 const multerErrorHandler = require("../../utils/ImageUploads/multerErrorHandler");
+const authorizeRoles = require("../../middlewares/authorizeRoles");
 
-router.get("/", isVerifyUser, getUsers);
-router.get("/profile", isVerifyUser, getMyProfile);
-router.get("/profile/:userId", isVerifyUser, getUsersProfile);
+router.get("/", authorizeRoles(), getUsers);
+router.get("/profile", authorizeRoles(), getMyProfile);
+router.get("/profile/:userId", authorizeRoles(), getUsersProfile);
 
 router.put(
   "/profile/profile-photo",
-  isVerifyUser,
+  authorizeRoles(),
   upload.single("image"),
   multerErrorHandler,
-  uploadProfilePhoto
+  uploadProfilePhoto,
 );
 
 router.put(
   "/profile/cover-photo",
-  isVerifyUser,
+  authorizeRoles(),
   upload.single("image"),
   multerErrorHandler,
-  uploadCoverPhoto
+  uploadCoverPhoto,
 );
 
-router.put("/profile", isVerifyUser, updateProfile);
-router.delete("/profile", isVerifyUser, deleteProfile);
+router.put("/profile", authorizeRoles(), updateProfile);
+router.delete("/profile", authorizeRoles(), deleteProfile);
 
-router.post("/active-status", isVerifyUser, activeStatus);
+router.post("/active-status", authorizeRoles(), activeStatus);
 
 module.exports = router;

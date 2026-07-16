@@ -6,13 +6,13 @@ const {
   logOutUser,
   refreshAccessToken,
   googleLogin,
-} = require("./authController");
-const isVerifyUser = require("../../middlewares/verifyUser");
+} = require("./authController"); 
+const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 router.post("/signup", signUpUser);
 router.post("/signin", signInUser);
-router.post("/logout", isVerifyUser, logOutUser);
-router.get("/refresh", isVerifyUser, refreshAccessToken);
+router.post("/logout", authorizeRoles(), logOutUser);
+router.get("/refresh", authorizeRoles(), refreshAccessToken);
 
 router.post("/google", googleLogin);
 module.exports = router;

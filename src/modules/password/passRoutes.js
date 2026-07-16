@@ -5,8 +5,8 @@ const {
   verifyResetToken,
   resetPassword,
   changePassword,
-} = require("./passController");
-const isVerifyUser = require("../../middlewares/verifyUser");
+} = require("./passController"); 
+const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 
 // const rateLimit = require("express-rate-limit");
@@ -20,5 +20,5 @@ router.post("/request-reset",  requestPasswordReset);
 router.get("/verify-reset-token", verifyResetToken);
 router.post("/reset-password", resetPassword);
 
-router.put("/change-password", isVerifyUser, changePassword);
+router.put("/change-password", authorizeRoles(), changePassword);
 module.exports = router;
