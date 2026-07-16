@@ -7,6 +7,7 @@ const {
   makeAdminService,
   removeAdminService,
   deleteUserByAdminService,
+  updatePostStatusService,
 } = require("./adminServices");
 
 const handleAdminError = (res, error, action) => {
@@ -58,6 +59,48 @@ const removeAdmin = async (req, res) => {
     return handleAdminError(res, error, "remove admin");
   }
 };
+
+
+
+const updatePostStatus = async (req, res) => {
+  try {
+    const result = await updatePostStatusService(req);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    if (error.message === "POST_ID_REQUIRED") {
+      return res.status(400).json({
+        message: "Post ID is required",
+      });
+    }
+
+    if (error.message === "STATUS_REQUIRED") {
+      return res.status(400).json({
+        message: "Status is required",
+      });
+    }
+
+    if (error.message === "INVALID_STATUS") {
+      return res.status(400).json({
+        message: "Invalid status",
+      });
+    }
+
+    if (error.message === "POST_NOT_FOUND") {
+      return res.status(404).json({
+        message: "Post not found",
+      });
+    }
+
+    console.error("Update post status error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+
 
 const deleteUserByAdmin = async (req, res) => {
   try {
@@ -120,4 +163,5 @@ module.exports = {
   deleteUserByAdmin,
   deletePostByAdmin,
   deleteCommentByAdmin,
+  updatePostStatus
 };

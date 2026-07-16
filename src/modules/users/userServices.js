@@ -10,7 +10,7 @@ const User = require("./userModel");
 
 const getAllUsersService = async (req) => {
   const id = req.user?._id;
-  console.log(req.user)
+
   if (!id) throw new Error("USER_ID_REQUIRED");
 
   const { search, role, online } = req.query;

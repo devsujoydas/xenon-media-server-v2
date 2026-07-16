@@ -20,24 +20,12 @@ router.get("/", authorizeRoles(), getUsers);
 router.get("/profile", authorizeRoles(), getMyProfile);
 router.get("/profile/:userId", authorizeRoles(), getUsersProfile);
 
-router.put(
-  "/profile/profile-photo",
-  authorizeRoles(),
-  upload.single("image"),
-  multerErrorHandler,
-  uploadProfilePhoto,
-);
-
-router.put(
-  "/profile/cover-photo",
-  authorizeRoles(),
-  upload.single("image"),
-  multerErrorHandler,
-  uploadCoverPhoto,
-);
+router.put( "/profile/profile-photo", authorizeRoles(), upload.single("image"), multerErrorHandler, uploadProfilePhoto, );
+router.put("/profile/cover-photo",authorizeRoles(),upload.single("image"),multerErrorHandler,uploadCoverPhoto,);
 
 router.put("/profile", authorizeRoles(), updateProfile);
 router.delete("/profile", authorizeRoles(), deleteProfile);
+
 
 router.post("/active-status", authorizeRoles(), activeStatus);
 
