@@ -6,8 +6,9 @@ const router = express.Router()
 
 router.put("/make/:userId", isVerifyAdmin, makeAdmin);
 router.put("/remove/:userId", isVerifyAdmin, removeAdmin);
+
 router.delete("/users/:userId", isVerifyAdmin, deleteUserByAdmin);
 router.delete("/posts/:postId", isVerifyAdmin, deletePostByAdmin);
-router.delete("/posts/:postId/:commentId", isVerifyAdmin, deleteCommentByAdmin);
+router.delete("/comments/:commentId", isVerifyAdmin, deleteCommentByAdmin);
 
 module.exports = router 

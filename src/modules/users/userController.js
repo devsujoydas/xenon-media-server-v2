@@ -131,7 +131,7 @@ const uploadCoverPhoto = async (req, res) => {
 
 const deleteProfile = async (req, res) => {
   try {
-    const result = await deleteProfileService(req);
+    const result = await deleteProfileService(req.user.id);
     return res.status(200).json({
       message: "Account deleted successfully",
       ...result,

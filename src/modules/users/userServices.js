@@ -3,7 +3,8 @@ const shuffleArray = require("../../utils/helpers/shuffleArray");
 const {
   deleteImageFromCloudinary,
   uploadImageToCloudinary,
-} = require("../../utils/ImageUploads/uploadService"); 
+} = require("../../utils/ImageUploads/uploadService");
+const Comment = require("../posts/commentModel");
 const Post = require("../posts/postModel");
 const User = require("./userModel");
 
@@ -109,31 +110,16 @@ const updateProfileService = async (req) => {
   return updatedUser;
 };
 
-
-
-
-
 const updateUserImageService = async (userId, file, field, folder) => {
-  if (!file) {
-    throw new Error("No image selected.");
-  }
+  if (!file) throw new Error("No image selected.");
 
   const user = await User.findById(userId);
 
-  if (!user) {
-    throw new Error("User not found.");
-  }
+  if (!user) throw new Error("User not found.");
 
-  // পুরনো image-এর publicId রেখে দিচ্ছি
   const oldPublicId = user[field]?.publicId;
 
-  // নতুন image upload
-  const uploadedImage = await uploadImageToCloudinary(
-    file.buffer,
-    folder
-  );
-
-  // Database update
+  const uploadedImage = await uploadImageToCloudinary(file.buffer, folder);
   user[field] = {
     url: uploadedImage.url,
     publicId: uploadedImage.publicId,
@@ -141,7 +127,6 @@ const updateUserImageService = async (userId, file, field, folder) => {
 
   await user.save();
 
-  // Database save সফল হলে পুরনো image delete
   if (oldPublicId) {
     await deleteImageFromCloudinary(oldPublicId);
   }
@@ -154,27 +139,108 @@ const updateUserImageService = async (userId, file, field, folder) => {
 
 
 
+const deleteProfileService = async (userId) => {
 
-
-const deleteProfileService = async (req) => {
-  const id = req.user.id;
-
-  const user = await User.findById(id);
+  const user = await User.findById(userId);
   if (!user) throw new Error("USER_NOT_FOUND");
 
-  const userDeleted = await User.deleteOne({ _id: id });
-  const postsDeleted = await Post.deleteMany({ author: id });
-  const likesUpdated = await Post.updateMany(
-    { likes: id },
-    { $pull: { likes: id } },
-  );
+  const posts = await Post.find({ author: userId }).select("_id postImg");
+  const postIds = posts.map((post) => post._id);
+
+  const imageDeletePromises = [];
+
+  if (user.profileImage?.publicId) {
+    imageDeletePromises.push(
+      deleteImageFromCloudinary(user.profileImage.publicId)
+    );
+  }
+
+  if (user.coverImage?.publicId) {
+    imageDeletePromises.push(
+      deleteImageFromCloudinary(user.coverImage.publicId)
+    );
+  }
+
+  posts.forEach((post) => {
+    if (post.postImg?.publicId) {
+      imageDeletePromises.push(
+        deleteImageFromCloudinary(post.postImg.publicId)
+      );
+    }
+  });
+
+  await Promise.all(imageDeletePromises);
+
+  const [
+    userDeleted,
+    postsDeleted,
+    userCommentsDeleted,
+    postCommentsDeleted,
+    postReactsRemoved,
+    commentLikesRemoved,
+    commentDisLikesRemoved,
+    followersFollowingUpdated,
+    savedPostsUpdated,
+  ] = await Promise.all([
+
+    User.deleteOne({ _id: userId }),
+    Post.deleteMany({ author: userId }),
+    Comment.deleteMany({ author: userId }),
+    Comment.deleteMany({ post: { $in: postIds }, }),
+
+    Post.updateMany(
+      { reacts: userId },
+      { $pull: { reacts: userId, }, }
+    ),
+
+    Comment.updateMany(
+      { likes: userId },
+      { $pull: { likes: userId, }, }
+    ),
+
+    Comment.updateMany(
+      { disLikes: userId },
+      { $pull: { disLikes: userId, }, }
+    ),
+
+    User.updateMany(
+      {},
+      { $pull: { followers: userId, following: userId,} ,}
+    ),
+
+    User.updateMany(
+      {},
+      { $pull: { savePosts: { $in: postIds, }, }, }
+    ),
+  ]);
 
   return {
+    success: true,
+    message: "Profile deleted successfully.",
     userDeleted: userDeleted.deletedCount,
     postsDeleted: postsDeleted.deletedCount,
-    likesUpdated: likesUpdated.modifiedCount,
+    userCommentsDeleted: userCommentsDeleted.deletedCount,
+    postCommentsDeleted: postCommentsDeleted.deletedCount,
+    postReactsRemoved: postReactsRemoved.modifiedCount,
+    commentLikesRemoved: commentLikesRemoved.modifiedCount,
+    commentDisLikesRemoved: commentDisLikesRemoved.modifiedCount,
+    followersFollowingUpdated: followersFollowingUpdated.modifiedCount,
+    savedPostsUpdated: savedPostsUpdated.modifiedCount,
   };
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const userTimers = new Map();
 const activeStatusServicess = async (userId) => {
