@@ -87,17 +87,18 @@ const updateProfile = async (req, res) => {
 
 const uploadProfilePhoto = async (req, res) => {
   try {
-    const user = await updateUserImageService(
+    const { user, post } = await updateUserImageService(
       req.user?._id,
       req.file,
       "profileImage",
       "profile_photos",
+      { createPost: true }, // 👈 enable auto-post
     );
-
     res.status(200).json({
       success: true,
       message: "Profile photo updated successfully.",
       user,
+      post,
     });
   } catch (error) {
     res.status(400).json({
@@ -109,17 +110,18 @@ const uploadProfilePhoto = async (req, res) => {
 
 const uploadCoverPhoto = async (req, res) => {
   try {
-    const user = await updateUserImageService(
+    const { user, post } = await updateUserImageService(
       req.user?._id,
       req.file,
       "coverImage",
       "cover_photos",
+      { createPost: true },
     );
-
     res.status(200).json({
       success: true,
       message: "Cover photo updated successfully.",
       user,
+      post,
     });
   } catch (error) {
     res.status(400).json({
@@ -179,3 +181,4 @@ module.exports = {
   deleteProfile,
   activeStatus,
 };
+ 

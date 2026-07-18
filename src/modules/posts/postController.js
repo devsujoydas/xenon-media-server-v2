@@ -16,16 +16,13 @@ const {
   manageLikeService,
   toggleReactService,
 } = require("./postServices");
-
-// Single source of truth for error -> HTTP status/message mapping.
-// Every controller below now goes through this instead of each one
-// re-implementing its own ad-hoc switch/if chain.
+ 
 const ERROR_MAP = {
   INVALID_AUTHOR_ID: [400, "Invalid author id"],
   INVALID_USER_ID: [400, "Invalid user id"],
   INVALID_POST_ID: [400, "Invalid post id"],
   INVALID_COMMENT_ID: [400, "Invalid comment id"],
-  ALL_FIELDS_REQUIRED: [400, "Title and content are required"],
+  ALL_FIELDS_REQUIRED: [400, "Content are required"],
   TEXT_REQUIRED: [400, "Comment text is required"],
   POST_ID_AND_COMMENT_ID_REQUIRED: [400, "Post id and comment id are required"],
 
@@ -76,7 +73,7 @@ const getUserPosts = async (req, res) => {
 
 const getPost = async (req, res) => {
   try {
-    const post = await getPostServices(req.params.postId, req.user?._id);
+    const post = await getPostServices(req);
     res.status(200).json({ post });
   } catch (error) {
     handlePostError(res, error);
@@ -114,7 +111,7 @@ const updatePost = async (req, res) => {
 
 const deletePost = async (req, res) => {
   try {
-    const data = await deletePostServices(req.user, req.params.postId);
+    const data = await deletePostServices(req);
     res.status(200).json(data);
   } catch (error) {
     handlePostError(res, error);

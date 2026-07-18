@@ -14,7 +14,7 @@ const signUpUser = async (req, res) => {
     if (error.message === "USER_ALREADY_EXIST") {
       return res
         .status(409)
-        .json({ message: "User already exists with this emaill" });
+        .json({ message: "User already exists with this email" });
     }
     res.status(500).send({ message: error.message });
   }

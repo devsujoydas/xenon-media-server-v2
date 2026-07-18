@@ -14,11 +14,10 @@ const postSchema = new mongoose.Schema(
       publicId: { type: String, default: "" },
     },
 
-    title: { type: String, required: true, trim: true, maxlength: 150 },
     content: { type: String, required: true },
 
     reacts: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-
+shares: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
@@ -30,7 +29,7 @@ const postSchema = new mongoose.Schema(
 );
 
 // Speeds up the $or text search used in getPostsServices
-postSchema.index({ title: "text", content: "text" });
+postSchema.index({ content: "text" });
 
 const Post = mongoose.model("Post", postSchema);
 module.exports = Post;

@@ -7,6 +7,8 @@ const buildCommentResponse = (comment, userId = null) => {
 
   return {
     ...data,
+    likesCount: likes.length,
+    dislikesCount: disLikes.length,
     likedByMe: userId
       ? likes.some((id) => id.toString() === userId.toString())
       : false,

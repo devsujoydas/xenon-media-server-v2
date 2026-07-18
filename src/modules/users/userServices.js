@@ -107,13 +107,16 @@ const updateProfileService = async (req) => {
   return updatedUser;
 };
 
-const updateUserImageService = async (userId, file, field, folder) => {
+const updateUserImageService = async (
+  userId,
+  file,
+  field,
+  folder,
+  options = {},
+) => {
   if (!file) throw new Error("No image selected.");
-
   const user = await User.findById(userId);
-
   if (!user) throw new Error("User not found.");
-
   const oldPublicId = user[field]?.publicId;
 
   const uploadedImage = await uploadImageToCloudinary(file.buffer, folder);
@@ -121,23 +124,48 @@ const updateUserImageService = async (userId, file, field, folder) => {
     url: uploadedImage.url,
     publicId: uploadedImage.publicId,
   };
-
   await user.save();
 
   if (oldPublicId) {
     await deleteImageFromCloudinary(oldPublicId);
   }
 
-  return user;
+  let post = null;
+
+  // ✅ optionally create a post using the same uploaded image
+  if (options.createPost) {
+    const content =
+      field === "profileImage"
+        ? "Updated their profile photo."
+        : "Updated their cover photo.";
+
+    const createdPost = await Post.create({
+      content,
+      postImg: {
+        url: uploadedImage.url,
+        publicId: uploadedImage.publicId,
+      },
+      author: userId,
+    });
+
+    post = {
+      ...createdPost.toObject(),
+      author: {
+        _id: user._id,
+        name: user.name,
+        username: user.username,
+        profileImage: user.profileImage,
+      },
+      commentCount: 0,
+      reacted: false,
+      reactCount: 0,
+    };
+  }
+
+  return { user, post };
 };
 
-
-
-
-
-
 const deleteProfileService = async (userId) => {
-
   const user = await User.findById(userId);
   if (!user) throw new Error("USER_NOT_FOUND");
 
@@ -148,20 +176,20 @@ const deleteProfileService = async (userId) => {
 
   if (user.profileImage?.publicId) {
     imageDeletePromises.push(
-      deleteImageFromCloudinary(user.profileImage.publicId)
+      deleteImageFromCloudinary(user.profileImage.publicId),
     );
   }
 
   if (user.coverImage?.publicId) {
     imageDeletePromises.push(
-      deleteImageFromCloudinary(user.coverImage.publicId)
+      deleteImageFromCloudinary(user.coverImage.publicId),
     );
   }
 
   posts.forEach((post) => {
     if (post.postImg?.publicId) {
       imageDeletePromises.push(
-        deleteImageFromCloudinary(post.postImg.publicId)
+        deleteImageFromCloudinary(post.postImg.publicId),
       );
     }
   });
@@ -179,36 +207,20 @@ const deleteProfileService = async (userId) => {
     followersFollowingUpdated,
     savedPostsUpdated,
   ] = await Promise.all([
-
     User.deleteOne({ _id: userId }),
     Post.deleteMany({ author: userId }),
     Comment.deleteMany({ author: userId }),
-    Comment.deleteMany({ post: { $in: postIds }, }),
+    Comment.deleteMany({ post: { $in: postIds } }),
 
-    Post.updateMany(
-      { reacts: userId },
-      { $pull: { reacts: userId, }, }
-    ),
+    Post.updateMany({ reacts: userId }, { $pull: { reacts: userId } }),
 
-    Comment.updateMany(
-      { likes: userId },
-      { $pull: { likes: userId, }, }
-    ),
+    Comment.updateMany({ likes: userId }, { $pull: { likes: userId } }),
 
-    Comment.updateMany(
-      { disLikes: userId },
-      { $pull: { disLikes: userId, }, }
-    ),
+    Comment.updateMany({ disLikes: userId }, { $pull: { disLikes: userId } }),
 
-    User.updateMany(
-      {},
-      { $pull: { followers: userId, following: userId,} ,}
-    ),
+    User.updateMany({}, { $pull: { followers: userId, following: userId } }),
 
-    User.updateMany(
-      {},
-      { $pull: { savePosts: { $in: postIds, }, }, }
-    ),
+    User.updateMany({}, { $pull: { savePosts: { $in: postIds } } }),
   ]);
 
   return {
@@ -225,19 +237,6 @@ const deleteProfileService = async (userId) => {
     savedPostsUpdated: savedPostsUpdated.modifiedCount,
   };
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 const userTimers = new Map();
 const activeStatusServicess = async (userId) => {

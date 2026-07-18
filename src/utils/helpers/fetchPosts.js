@@ -2,7 +2,6 @@ const Comment = require("../../modules/posts/commentModel");
 const Post = require("../../modules/posts/postModel");
 const shuffleArray = require("./shuffleArray");
 
- 
 const fetchPosts = async (filter = {}, options = {}) => {
   const {
     populateAuthor = true,
@@ -18,6 +17,8 @@ const fetchPosts = async (filter = {}, options = {}) => {
   if (populateAuthor) {
     query = query.populate("author", "name username profileImage");
   }
+
+  query = query.populate("reacts", "name username profileImage");
 
   if (page && limit) {
     query = query.skip((page - 1) * limit).limit(limit);
@@ -42,7 +43,7 @@ const fetchPosts = async (filter = {}, options = {}) => {
 
   const postsWithCount = posts.map((post) => {
     const isReacted = userId
-      ? post.reacts.some((id) => id.toString() === userId.toString())
+      ? post.reacts.some((u) => u._id.toString() === userId.toString())
       : false;
 
     return {

@@ -7,10 +7,8 @@ const {
 const User = require("../users/userModel");
 const Comment = require("./commentModel");
 const Post = require("./postModel");
-const {
-  populateComment,
-  buildCommentResponse,
-} = require("../../utils/helpers/buildCommentResponse ");
+const { buildCommentResponse } = require("../../utils/helpers/buildCommentResponse");
+
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -31,10 +29,7 @@ const getPostsServices = async (req) => {
   }
 
   if (search) {
-    filter.$or = [
-      { title: { $regex: search, $options: "i" } },
-      { content: { $regex: search, $options: "i" } },
-    ];
+    filter.$or = [{ content: { $regex: search, $options: "i" } }];
   }
 
   return fetchPosts(filter, {
@@ -69,18 +64,23 @@ const getUserPostsServices = async (req) => {
   return fetchPosts(filter, { userId: req.user?._id });
 };
 
-const getPostServices = async (postId, userId) => {
+
+const getPostServices = async (req) => {
+  const userId = req.user?._id;
+  const postId = req.params.postId;
+
   if (!isValidId(postId)) throw new Error("INVALID_POST_ID");
 
   const post = await Post.findById(postId)
     .select("-__v")
-    .populate("author", "name username profileImage");
+    .populate("author", "name username profileImage")
+    .populate("reacts", "name username profileImage");
 
   if (!post) throw new Error("POST_NOT_FOUND");
 
   const commentCount = await Comment.countDocuments({ post: post._id });
   const reacted = userId
-    ? post.reacts.some((id) => id.toString() === userId.toString())
+    ? post.reacts.some((u) => u._id.toString() === userId.toString())
     : false;
 
   return {
@@ -107,9 +107,9 @@ const getMySavedPostsService = async (req) => {
 // ---------------- POSTS: write ----------------
 
 const createPostServices = async (req) => {
-  const { title, content } = req.body;
+  const { content } = req.body;
 
-  if (!title || !content) throw new Error("ALL_FIELDS_REQUIRED");
+  if (!content) throw new Error("ALL_FIELDS_REQUIRED");
 
   let image = {
     url: "",
@@ -121,7 +121,6 @@ const createPostServices = async (req) => {
   }
 
   const createdPost = await Post.create({
-    title,
     content,
     postImg: image,
     author: req.user?._id,
@@ -153,7 +152,6 @@ const updatePostServices = async (req) => {
 
   if (!post.author.equals(req.user?._id)) throw new Error("UNAUTHORIZED");
 
-  if (req.body.title) post.title = req.body.title;
   if (req.body.content) post.content = req.body.content;
 
   if (req.file) {
@@ -167,7 +165,10 @@ const updatePostServices = async (req) => {
   return post;
 };
 
-const deletePostServices = async (user, postId) => {
+const deletePostServices = async (req) => {
+  const user = req.user;
+  const postId = req.params.postId;
+
   if (!isValidId(postId)) throw new Error("INVALID_POST_ID");
 
   const post = await Post.findById(postId);
@@ -391,7 +392,7 @@ const manageDislikeService = async (req) => {
 
   await comment.save();
   await populateComment(comment);
-  
+
   return {
     message: disliked ? "Removed dislike" : "Disliked comment",
     comment: buildCommentResponse(comment, req.user?._id),
