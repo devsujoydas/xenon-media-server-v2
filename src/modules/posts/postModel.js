@@ -17,7 +17,7 @@ const postSchema = new mongoose.Schema(
     content: { type: String, required: true },
 
     reacts: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-shares: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    shares: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],

@@ -17,8 +17,9 @@ const multerErrorHandler = require("../../utils/ImageUploads/multerErrorHandler"
 const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 router.get("/", authorizeRoles(), getUsers);
-router.get("/profile", authorizeRoles(), getMyProfile);
 router.get("/profile/:userId", authorizeRoles(), getUsersProfile);
+
+router.get("/profile", authorizeRoles(), getMyProfile);
 
 router.put( "/profile/profile-photo", authorizeRoles(), upload.single("image"), multerErrorHandler, uploadProfilePhoto, );
 router.put("/profile/cover-photo",authorizeRoles(),upload.single("image"),multerErrorHandler,uploadCoverPhoto,);
