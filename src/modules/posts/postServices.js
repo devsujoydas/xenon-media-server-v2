@@ -7,8 +7,10 @@ const {
 const User = require("../users/userModel");
 const Comment = require("./commentModel");
 const Post = require("./postModel");
-const { buildCommentResponse } = require("../../utils/helpers/buildCommentResponse");
-
+const {
+  buildCommentResponse,
+  populateComment,
+} = require("../../utils/helpers/buildCommentResponse");
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -63,7 +65,6 @@ const getUserPostsServices = async (req) => {
 
   return fetchPosts(filter, { userId: req.user?._id });
 };
-
 
 const getPostServices = async (req) => {
   const userId = req.user?._id;
@@ -174,7 +175,7 @@ const deletePostServices = async (req) => {
   const post = await Post.findById(postId);
   if (!post) throw new Error("POST_NOT_FOUND");
 
-  if (!post.author.equals(user.id) && user.role !== "admin") {
+  if (!post.author.equals(user._id) && user.role !== "admin") {
     throw new Error("UNAUTHORIZED");
   }
 
@@ -246,27 +247,26 @@ const toggleReactService = async (req) => {
   };
 };
 
-// ---------------- COMMENTS ----------------
+
+
+// ---------------- Comment here ----------------
 
 const getCommentsService = async (req) => {
   const { postId } = req.params;
   const { sort = "recent" } = req.query;
 
-  if (!isValidId(postId)) {
-    throw new Error("INVALID_POST_ID");
-  }
+  if (!isValidId(postId)) throw new Error("INVALID_POST_ID");
+
+  const postExists = await Post.exists({ _id: postId });
+  if (!postExists) throw new Error("POST_NOT_FOUND");
 
   let comments = await populateComment(Comment.find({ post: postId })).lean();
 
-  comments = comments.map((comment) =>
-    buildCommentResponse(comment, req.user?._id),
-  );
+  comments = comments.map((comment) => buildCommentResponse(comment, req.user?._id));
 
   if (sort === "recent") {
-    comments.sort((a, b) => b.createdAt - a.createdAt);
-  }
-
-  if (sort === "relevant") {
+    comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } else if (sort === "relevant") {
     comments.sort((a, b) => b.likesCount - a.likesCount);
   }
 
@@ -280,15 +280,14 @@ const createCommentService = async (req) => {
   const { text } = req.body;
   const { postId } = req.params;
 
-  if (!text) throw new Error("TEXT_REQUIRED");
+  if (!text?.trim()) throw new Error("TEXT_REQUIRED");
   if (!isValidId(postId)) throw new Error("INVALID_POST_ID");
 
   const post = await Post.findById(postId);
-
   if (!post) throw new Error("POST_NOT_FOUND");
 
   let comment = await Comment.create({
-    text,
+    text: text.trim(),
     author: req.user?._id,
     post: postId,
   });
@@ -305,97 +304,100 @@ const updateCommentService = async (req) => {
   const { commentId } = req.params;
   const { text } = req.body;
 
-  if (!text) throw new Error("TEXT_REQUIRED");
+  if (!isValidId(commentId)) throw new Error("INVALID_COMMENT_ID");
+  if (!text?.trim()) throw new Error("TEXT_REQUIRED");
 
-  const comment = await Comment.findOne({ _id: commentId });
-
+  const comment = await Comment.findById(commentId);
   if (!comment) throw new Error("COMMENT_NOT_FOUND");
 
-  if (!comment.author.equals(req.user?._id) && req.user.role !== "admin") {
-    throw new Error("UNAUTHORIZED");
-  }
+  const isOwner = comment.author.equals(req.user?._id);
+  const isAdmin = req.user?.role === "admin";
+  if (!isOwner && !isAdmin) throw new Error("UNAUTHORIZED");
 
-  comment.text = text;
-
+  comment.text = text.trim();
   await comment.save();
 
-  await populateComment(comment);
+  const populated = await populateComment(comment);
 
   return {
     message: "Comment updated successfully",
-    comment: buildCommentResponse(comment, req.user?._id),
+    comment: buildCommentResponse(populated, req.user?._id),
   };
 };
 
 const deleteCommentService = async (req) => {
   const { commentId } = req.params;
 
-  const comment = await Comment.findOne({
-    _id: commentId,
-  });
+  if (!isValidId(commentId)) throw new Error("INVALID_COMMENT_ID");
 
+  const comment = await Comment.findById(commentId);
   if (!comment) throw new Error("COMMENT_NOT_FOUND");
 
-  if (!comment.author.equals(req.user?._id) && req.user.role !== "admin") {
-    throw new Error("UNAUTHORIZED");
-  }
+  const isOwner = comment.author.equals(req.user?._id);
+  const isAdmin = req.user?.role === "admin";
+  if (!isOwner && !isAdmin) throw new Error("UNAUTHORIZED");
 
   await comment.deleteOne();
 
   return {
     message: "Comment deleted successfully",
+    commentId, // frontend already ei id use kore, but explicit return kore dilam consistency er jonno
   };
 };
 
 // ---------------- COMMENT LIKE / DISLIKE ----------------
 
-const manageLikeService = async (req) => {
+const manageCommentLikeService = async (req) => {
   const { commentId } = req.params;
 
-  const comment = await Comment.findById(commentId);
+  if (!isValidId(commentId)) throw new Error("INVALID_COMMENT_ID");
 
+  const comment = await Comment.findById(commentId);
   if (!comment) throw new Error("COMMENT_NOT_FOUND");
 
-  const liked = comment.likes.some((id) => id.equals(req.user?._id));
+  const userId = req.user?._id;
+  const liked = comment.likes.some((id) => id.equals(userId));
 
   if (liked) {
-    comment.likes.pull(req.user?._id);
+    comment.likes.pull(userId);
   } else {
-    comment.likes.addToSet(req.user?._id);
-    comment.disLikes.pull(req.user?._id);
+    comment.likes.addToSet(userId);
+    comment.disLikes.pull(userId);
   }
 
   await comment.save();
-  await populateComment(comment);
+  const populated = await populateComment(comment);
 
   return {
     message: liked ? "Unliked comment" : "Liked comment",
-    comment: buildCommentResponse(comment, req.user?._id),
+    comment: buildCommentResponse(populated, userId),
   };
 };
 
-const manageDislikeService = async (req) => {
+const manageCommentDislikeService = async (req) => {
   const { commentId } = req.params;
 
-  const comment = await Comment.findById(commentId);
+  if (!isValidId(commentId)) throw new Error("INVALID_COMMENT_ID");
 
+  const comment = await Comment.findById(commentId);
   if (!comment) throw new Error("COMMENT_NOT_FOUND");
 
-  const disliked = comment.disLikes.some((id) => id.equals(req.user?._id));
+  const userId = req.user?._id;
+  const disliked = comment.disLikes.some((id) => id.equals(userId));
 
   if (disliked) {
-    comment.disLikes.pull(req.user?._id);
+    comment.disLikes.pull(userId);
   } else {
-    comment.disLikes.addToSet(req.user?._id);
-    comment.likes.pull(req.user?._id);
+    comment.disLikes.addToSet(userId);
+    comment.likes.pull(userId);
   }
 
   await comment.save();
-  await populateComment(comment);
+  const populated = await populateComment(comment);
 
   return {
     message: disliked ? "Removed dislike" : "Disliked comment",
-    comment: buildCommentResponse(comment, req.user?._id),
+    comment: buildCommentResponse(populated, userId),
   };
 };
 
@@ -418,6 +420,6 @@ module.exports = {
   updateCommentService,
   deleteCommentService,
 
-  manageLikeService,
-  manageDislikeService,
+  manageCommentLikeService,
+  manageCommentDislikeService,
 };

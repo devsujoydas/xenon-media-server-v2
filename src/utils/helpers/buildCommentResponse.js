@@ -1,3 +1,4 @@
+// helpers/comment.helper.js
 
 const buildCommentResponse = (comment, userId = null) => {
   const data = comment.toObject ? comment.toObject() : comment;
@@ -15,11 +16,15 @@ const buildCommentResponse = (comment, userId = null) => {
     dislikedByMe: userId
       ? disLikes.some((id) => id.toString() === userId.toString())
       : false,
+    isEdited: data.createdAt && data.updatedAt
+      ? new Date(data.updatedAt).getTime() - new Date(data.createdAt).getTime() > 1000
+      : false,
   };
 };
 
-const populateComment = (query) =>
-  query.populate("author", "name username profileImage");
+// async NOT deya — Query ba Document jai pass koro, seta chainable thakbe (.lean() shoho)
+const populateComment = (docOrQuery) =>
+  docOrQuery.populate("author", "name username profileImage");
 
 module.exports = {
   buildCommentResponse,

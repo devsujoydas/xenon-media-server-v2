@@ -12,9 +12,9 @@ const {
   deleteCommentService,
   getCommentsService,
   updateCommentService,
-  manageDislikeService,
-  manageLikeService,
   toggleReactService,
+  manageCommentDislikeService,
+  manageCommentLikeService,
 } = require("./postServices");
  
 const ERROR_MAP = {
@@ -138,6 +138,7 @@ const toggleReact = async (req, res) => {
   }
 };
 
+
 // ---------------- COMMENTS ----------------
 
 const getComments = async (req, res) => {
@@ -176,22 +177,31 @@ const deleteComment = async (req, res) => {
   }
 };
 
-const manageLike = async (req, res) => {
+const manageCommentLike = async (req, res) => {
   try {
-    const result = await manageLikeService(req);
+    const result = await manageCommentLikeService(req);
     res.status(200).json(result);
   } catch (error) {
     handlePostError(res, error);
   }
 };
 
-const manageDislike = async (req, res) => {
+const manageCommentDislike = async (req, res) => {
   try {
-    const result = await manageDislikeService(req);
+    const result = await manageCommentDislikeService(req);
     res.status(200).json(result);
   } catch (error) {
     handlePostError(res, error);
   }
+};
+
+module.exports = {
+  getComments,
+  createComment,
+  updateComment,
+  deleteComment,
+  manageCommentLike,
+  manageCommentDislike,
 };
 
 module.exports = {
@@ -213,6 +223,6 @@ module.exports = {
   updateComment,
   deleteComment,
 
-  manageLike,
-  manageDislike,
+  manageCommentLike,
+  manageCommentDislike,
 };

@@ -14,10 +14,10 @@ const {
   createComment,
   deleteComment,
   getComments,
-  updateComment,
-  manageDislike,
-  manageLike,
+  updateComment, 
   toggleReact,
+  manageCommentLike,
+  manageCommentDislike,
 } = require("./postController");
  
 const upload = require("../../utils/ImageUploads/multer");
@@ -45,7 +45,7 @@ router.post("/post/:postId/comment", authorizeRoles(), createComment);
 
 router.put("/comment/:commentId", authorizeRoles(), updateComment);
 router.delete("/comment/:commentId", authorizeRoles(), deleteComment);
-router.put("/comment/:commentId/like", authorizeRoles(), manageLike);
-router.put("/comment/:commentId/dislike", authorizeRoles(), manageDislike);
+router.put("/comment/:commentId/like", authorizeRoles(), manageCommentLike);
+router.put("/comment/:commentId/dislike", authorizeRoles(), manageCommentDislike);
 
 module.exports = router;
