@@ -345,7 +345,7 @@ const deleteCommentService = async (req) => {
   };
 };
 
-// ---------------- COMMENT LIKE / DISLIKE ----------------
+
 
 const manageCommentLikeService = async (req) => {
   const { commentId } = req.params;

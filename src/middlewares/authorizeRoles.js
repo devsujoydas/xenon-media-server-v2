@@ -12,13 +12,10 @@ const authorizeRoles = (...roles) => {
       });
     }
 
-    // শুধু Login লাগলে
     if (roles.length === 0) {
       req.user = user;
       return next();
     }
-
-    // Role Check
     if (!roles.includes(user.role)) {
       return res.status(403).json({
         message: "Access denied!",

@@ -77,7 +77,7 @@ const googleLogin = async (req, res) => {
   try {
     const { firebaseToken } = req.body;
 
-    // ✅ Verify firebase token
+
     const decoded = await admin.auth().verifyIdToken(firebaseToken);
 
     const { email, name, picture, uid } = decoded;

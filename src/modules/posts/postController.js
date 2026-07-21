@@ -139,7 +139,6 @@ const toggleReact = async (req, res) => {
 };
 
 
-// ---------------- COMMENTS ----------------
 
 const getComments = async (req, res) => {
   try {
