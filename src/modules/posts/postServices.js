@@ -341,7 +341,7 @@ const deleteCommentService = async (req) => {
 
   return {
     message: "Comment deleted successfully",
-    commentId, // frontend already ei id use kore, but explicit return kore dilam consistency er jonno
+    commentId,
   };
 };
 
