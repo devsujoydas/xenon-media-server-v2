@@ -83,8 +83,7 @@ const googleLogin = async (req, res) => {
     const { email, name, picture, uid } = decoded;
 
     let user = await User.findOne({ email });
-
-    // ✅ Create user if not exists
+ 
     if (!user) {
       user = await User.create({
         name,
