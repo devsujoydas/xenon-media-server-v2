@@ -25,6 +25,7 @@ const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 router.get("/", authorizeRoles(), getPosts);
 router.get("/user/:userId", authorizeRoles(), getUserPosts);
+
 router.get("/me", authorizeRoles(), getMyPosts);
 router.get("/me/saved", authorizeRoles(), getMySavedPosts);
 router.get("/post/:postId", authorizeRoles(), getPost);

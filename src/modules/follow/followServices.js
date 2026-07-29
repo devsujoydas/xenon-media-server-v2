@@ -7,7 +7,8 @@ const PUBLIC_PROFILE_FIELDS = "name username profileImage";
 
 
 
-const followUserService = async (req) => {
+
+const toggleFollowService = async (req) => {
   const currentUserId = req.user?._id;
   const { userId: targetUserId } = req.params;
 
@@ -25,70 +26,30 @@ const followUserService = async (req) => {
   if (!currentUser) throw new ServiceError("CURRENT_USER_NOT_FOUND");
   if (!targetUser) throw new ServiceError("TARGET_USER_NOT_FOUND");
 
-  const alreadyFollowing = currentUser.following?.some(
-    (id) => String(id) === String(targetUserId),
-  );
-  if (alreadyFollowing) throw new ServiceError("ALREADY_FOLLOWING");
- 
-  await Promise.all([
-    User.updateOne(
-      { _id: currentUserId },
-      { $addToSet: { following: targetUserId } },
-    ),
-    User.updateOne(
-      { _id: targetUserId },
-      { $addToSet: { followers: currentUserId } },
-    ),
-  ]);
-
-  return {
-    statusCode: 200,
-    message: "User followed successfully.",
-    data: { targetUserId: String(targetUserId), isFollowing: true },
-  };
-};
-
-
-const unfollowUserService = async (req) => {
-  const currentUserId = req.user?._id;
-  const { userId: targetUserId } = req.params;
-
-  if (!targetUserId) throw new ServiceError("USER_ID_REQUIRED");
-  if (!mongoose.isValidObjectId(targetUserId))
-    throw new ServiceError("TARGET_USER_NOT_FOUND");
-  if (String(currentUserId) === String(targetUserId))
-    throw new ServiceError("CAN_NOT_UNFOLLOW_SELF");
-
-  const [currentUser, targetUser] = await Promise.all([
-    User.findById(currentUserId).select("_id following").lean(),
-    User.findById(targetUserId).select("_id").lean(),
-  ]);
-
-  if (!currentUser) throw new ServiceError("CURRENT_USER_NOT_FOUND");
-  if (!targetUser) throw new ServiceError("TARGET_USER_NOT_FOUND");
-
   const isFollowing = currentUser.following?.some(
     (id) => String(id) === String(targetUserId),
   );
-  if (!isFollowing) throw new ServiceError("NOT_FOLLOWING");
+
+  const update = isFollowing ? "$pull" : "$addToSet";
 
   await Promise.all([
     User.updateOne(
       { _id: currentUserId },
-      { $pull: { following: targetUserId } },
+      { [update]: { following: targetUserId } },
     ),
     User.updateOne(
       { _id: targetUserId },
-      { $pull: { followers: currentUserId } },
+      { [update]: { followers: currentUserId } },
     ),
   ]);
 
   return {
     statusCode: 200,
-    message: "User unfollowed successfully.",
-    data: { targetUserId: String(targetUserId), isFollowing: false },
+    message: isFollowing ? "User unfollowed successfully." : "User followed successfully.",
+    data: { targetUserId: String(targetUserId), isFollowing: !isFollowing },
   };
 };
+
 
 
 
@@ -172,6 +133,7 @@ const getFollowingService = async (req) => {
 };
 
 const getFollowStatusService = async (req) => {
+
   const currentUserId = req.user?._id;
   const { userId: targetUserId } = req.params;
 
@@ -203,8 +165,7 @@ const getFollowStatusService = async (req) => {
 
 
 module.exports = {
-  followUserService,
-  unfollowUserService,
+  toggleFollowService,
   getFollowersService,
   getFollowingService,
   getFollowStatusService,

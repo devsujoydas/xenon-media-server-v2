@@ -1,7 +1,6 @@
 const express = require("express");
 const {
   followUser,
-  unfollowUser,
   getFollowing,
   getFollowers,
   getFollowStatus,
@@ -9,8 +8,7 @@ const {
 const authorizeRoles = require("../../middlewares/authorizeRoles");
 const router = express.Router();
 
-router.post("/users/:userId/follow",authorizeRoles(), followUser);
-router.delete("/users/:userId/follow",authorizeRoles(), unfollowUser);
+router.patch("/users/:userId/follow",authorizeRoles(), followUser);
 
 router.get("/users/:userId/followers",authorizeRoles(), getFollowers);
 router.get("/users/:userId/following",authorizeRoles(), getFollowing);

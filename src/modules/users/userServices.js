@@ -15,7 +15,10 @@ const getAllUsersService = async (req) => {
 
   const { search, role, online } = req.query;
 
-  const filter = {};
+  const filter = {
+    _id: { $ne: id }
+  };
+
   if (search) {
     filter.$or = [
       { name: { $regex: search, $options: "i" } },
@@ -23,10 +26,11 @@ const getAllUsersService = async (req) => {
       { email: { $regex: search, $options: "i" } },
     ];
   }
+  
   if (role) filter.role = role;
 
   const users = await User.find(filter)
-    .select("name username email role isVerified profileImage activeStatus ")
+    .select("name username email role isVerified profileImage activeStatus followers following")
     .sort({ createdAt: -1 });
 
   const usersArray = shuffleArray(users);
@@ -39,7 +43,7 @@ const getMyProfileService = async (req) => {
   return req.user;
 };
 
-const getUsersProfileService = async (req) => {
+const getUsersProfileService = async (req) => { 
   if (!req.params?.userId) throw new Error("UNAUTHORIZE");
 
   const user = await User.findById(req.params.userId).select(

@@ -1,15 +1,13 @@
 const asyncHandler = require("../../utils/errorHandlers/asyncHandler");
 const followErrors = require("../../utils/errorHandlers/followErrors");
-const {
-  followUserService,
-  unfollowUserService,
+const { 
   getFollowersService,
   getFollowingService,
   getFollowStatusService,
+  toggleFollowService,
 } = require("./followServices");
 
-const followUser = asyncHandler(followUserService, followErrors);
-const unfollowUser = asyncHandler(unfollowUserService, followErrors);
+const followUser = asyncHandler(toggleFollowService, followErrors);
 
 const getFollowers = asyncHandler(getFollowersService, followErrors);
 const getFollowing = asyncHandler(getFollowingService, followErrors);
@@ -17,7 +15,6 @@ const getFollowStatus = asyncHandler(getFollowStatusService, followErrors);
 
 module.exports = {
   followUser,
-  unfollowUser,
   getFollowers,
   getFollowing,
   getFollowStatus,
