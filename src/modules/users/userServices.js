@@ -16,7 +16,7 @@ const getAllUsersService = async (req) => {
   const { search, role, online } = req.query;
 
   const filter = {
-    _id: { $ne: id }
+    _id: { $ne: id },
   };
 
   if (search) {
@@ -26,11 +26,13 @@ const getAllUsersService = async (req) => {
       { email: { $regex: search, $options: "i" } },
     ];
   }
-  
+
   if (role) filter.role = role;
 
   const users = await User.find(filter)
-    .select("name username email role isVerified profileImage activeStatus followers following")
+    .select(
+      "name username email role isVerified profileImage activeStatus followers following createdAt createdAt",
+    )
     .sort({ createdAt: -1 });
 
   const usersArray = shuffleArray(users);
@@ -43,12 +45,11 @@ const getMyProfileService = async (req) => {
   return req.user;
 };
 
-const getUsersProfileService = async (req) => { 
-  if (!req.params?.userId) throw new Error("UNAUTHORIZE");
+const getUsersProfileService = async (req) => {
+  if (!req.params?.username) throw new Error("UNAUTHORIZE");
+  const username = req.params.username;
 
-  const user = await User.findById(req.params.userId).select(
-    "-savedPosts -role",
-  );
+  const user = await User.findOne({ username }).select("-savedPosts -role");
 
   if (!user) throw new Error("USER_NOT_FOUND");
 

@@ -132,41 +132,10 @@ const getFollowingService = async (req) => {
   };
 };
 
-const getFollowStatusService = async (req) => {
-
-  const currentUserId = req.user?._id;
-  const { userId: targetUserId } = req.params;
-
-  if (!mongoose.isValidObjectId(targetUserId))
-    throw new ServiceError("TARGET_USER_NOT_FOUND");
-
-  if (String(currentUserId) === String(targetUserId)) {
-    return {
-      statusCode: 200,
-      message: "Follow status fetched successfully.",
-      data: { isFollowing: false },
-    };
-  }
-
-  const [targetExists, isFollowing] = await Promise.all([
-    User.exists({ _id: targetUserId }),
-    User.exists({ _id: currentUserId, following: targetUserId }),
-  ]);
-
-  if (!targetExists) throw new ServiceError("TARGET_USER_NOT_FOUND");
-
-  return {
-    statusCode: 200,
-    message: "Follow status fetched successfully.",
-    data: { isFollowing: !!isFollowing },
-  };
-};
-
 
 
 module.exports = {
   toggleFollowService,
   getFollowersService,
   getFollowingService,
-  getFollowStatusService,
 };

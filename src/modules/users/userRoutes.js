@@ -17,7 +17,7 @@ const multerErrorHandler = require("../../utils/ImageUploads/multerErrorHandler"
 const authorizeRoles = require("../../middlewares/authorizeRoles");
 
 router.get("/", authorizeRoles(), getUsers);
-router.get("/profile/:userId", authorizeRoles(), getUsersProfile);
+router.get("/profile/:username", authorizeRoles(), getUsersProfile);
 
 router.get("/profile", authorizeRoles(), getMyProfile);
 

@@ -12,6 +12,5 @@ router.patch("/users/:userId/follow",authorizeRoles(), followUser);
 
 router.get("/users/:userId/followers",authorizeRoles(), getFollowers);
 router.get("/users/:userId/following",authorizeRoles(), getFollowing);
-router.get("/users/:userId/follow-status",authorizeRoles(), getFollowStatus);
 
 module.exports = router;
