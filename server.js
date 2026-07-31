@@ -12,8 +12,6 @@ const port = PORT || 3000;
 app.use(express.json());
 app.use(cookieParser());
 
-connectDB();
-
 app.use(
   cors({
     origin: [
@@ -23,6 +21,11 @@ app.use(
     credentials: true,
   }),
 );
+
+connectDB().catch((err) => {
+  console.error("DB INIT FAILED:", err.message);
+});
+
 
 app.get("/", (req, res) =>
   res.send("Xenon Media v2 Connected With Server & MongoDB"),
