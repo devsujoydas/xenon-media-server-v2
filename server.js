@@ -18,8 +18,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173", 
-      "https://xenonmedia.netlify.app",
-      "https://xenonmedia.vercel.app",
+      "https://xenly.vercel.app",
     ],
     credentials: true,
   }),
@@ -30,8 +29,8 @@ app.get("/", (req, res) =>
 );
 app.use("/api/v2", allRoutes);
 
-app.listen(port, () => {
-  console.log(`Mongoose Server running on port ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Mongoose Server running on port ${port}`);
+// });
 
 module.exports = app;
