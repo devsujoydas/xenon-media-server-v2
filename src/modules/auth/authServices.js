@@ -1,7 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken"); 
 const User = require("../users/userModel");
-const { JWT_SECRET, ACCESS_TOKEN_EXPIRESIN } = require("../../configs/config");
 const createTokens = require("../../utils/tokens/createTokens");
 
 const signUpUserService = async (req, res) => {
@@ -89,7 +88,7 @@ const refreshAccessTokenService = (req) => {
     throw new Error("NO_REFRESH_TOKEN");
   }
 
-  const decoded = jwt.verify(refreshToken, JWT_SECRET);
+  const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET );
 
   const newAccessToken = jwt.sign(
     {
@@ -100,9 +99,9 @@ const refreshAccessTokenService = (req) => {
       profileImage: decoded.profileImage,
       isVerified: decoded.isVerified,
     },
-    JWT_SECRET,
+    process.env.JWT_SECRET ,
     {
-      expiresIn: ACCESS_TOKEN_EXPIRESIN,
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRESIN,
     },
   );
 

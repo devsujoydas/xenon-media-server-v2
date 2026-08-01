@@ -1,10 +1,10 @@
-const { JWT_SECRET } = require("../configs/config");
+ 
 const jwt = require("jsonwebtoken")
 
 const verifyPassResetToken = (token) => { 
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET );
     if (decoded.type !== "reset") throw new Error("INVALID_TOKEN_TYPE"); 
     return decoded.id;
   } catch (err) {

@@ -20,5 +20,4 @@ router.use("/follow", followRoutes);
 
 
 
-
 module.exports = router

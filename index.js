@@ -32,8 +32,8 @@ app.get("/", (req, res) =>
 );
 app.use("/api/v2", allRoutes);
 
-// app.listen(port, () => {
-//   console.log(`Mongoose Server running on port ${port}`);
-// });
+app.listen(port, () => {
+  console.log(`Mongoose Server running on port ${port}`);
+});
 
 module.exports = app;

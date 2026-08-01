@@ -1,5 +1,4 @@
-const jwt = require("jsonwebtoken");
-const { JWT_SECRET } = require("../../configs/config");
+const jwt = require("jsonwebtoken"); 
 const User = require("../../modules/users/userModel");
 
 const verifyToken = async (req) => {
@@ -16,7 +15,7 @@ const verifyToken = async (req) => {
   try {
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded.id)
       .select("-password -refreshToken -passResetToken -__v")

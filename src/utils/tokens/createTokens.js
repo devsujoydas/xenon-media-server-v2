@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const { ACCESS_TOKEN_EXPIRESIN, JWT_SECRET, REFRESH_TOKEN_EXPIRESIN } = require("../../configs/config");
 
 
 
@@ -8,12 +7,12 @@ const createTokens = (res, user) => {
     id: user._id,
   };
 
-  const accessToken = jwt.sign(payload, JWT_SECRET, {
-    expiresIn: ACCESS_TOKEN_EXPIRESIN,
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET , {
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRESIN,
   });
 
-  const refreshToken = jwt.sign(payload, JWT_SECRET, {
-    expiresIn: REFRESH_TOKEN_EXPIRESIN,
+  const refreshToken = jwt.sign(payload, process.env.JWT_SECRET , {
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRESIN,
   });
 
   res.cookie("refreshToken", refreshToken, {

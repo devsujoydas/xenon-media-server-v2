@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const sendEmail = require("../../utils/sendEmail");
 const passwordResetTemplate = require("../../utils/emailTemplates/passwordResetTemplate");
 const User = require("../users/userModel");
-const { FRONTEND_URL, JWT_SECRET } = require("../../configs/config");
+const { FRONTEND_URL } = require("../../configs/config");
 const verifyPassResetToken = require("../../utils/verifyPassResetToken");
 
 const requestPasswordResetService = async (email) => {
@@ -12,7 +12,7 @@ const requestPasswordResetService = async (email) => {
   const user = await User.findOne({ email });
   if (!user) return "If an account with that email exists, a reset link has been sent.";
   
-  const resetToken = jwt.sign( { id: user._id, type: "reset", }, JWT_SECRET, { expiresIn: "10m", }, );
+  const resetToken = jwt.sign( { id: user._id, type: "reset", }, process.env.JWT_SECRET , { expiresIn: "10m", }, );
   const resetLink = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   await sendEmail({
