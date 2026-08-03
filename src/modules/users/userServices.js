@@ -141,8 +141,8 @@ const updateUserImageService = async (
   if (options.createPost) {
     const content =
       field === "profileImage"
-        ? "Updated their profile photo."
-        : "Updated their cover photo.";
+        ? `${user.name} updated their profile picture. 📷`
+        : `${user.name} updated their cover photo. 🖼️`;
 
     const createdPost = await Post.create({
       content,
