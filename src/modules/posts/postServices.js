@@ -163,7 +163,21 @@ const updatePostServices = async (req) => {
   }
 
   await post.save();
-  return post;
+
+  return {
+    post: {
+      ...post.toObject(),
+      author: {
+        _id: req.user?._id,
+        name: req.user.name,
+        username: req.user.username,
+        profileImage: req.user.profileImage,
+      },
+      commentCount: 0,
+      reacted: false,
+      reactCount: post?.reacts?.length,
+    },
+  };
 };
 
 const deletePostServices = async (req) => {

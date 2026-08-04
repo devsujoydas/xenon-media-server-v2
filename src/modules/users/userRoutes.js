@@ -7,7 +7,6 @@ const {
   getMyProfile,
   updateProfile,
   deleteProfile,
-  activeStatus,
   getUsersProfile,
   uploadProfilePhoto,
   uploadCoverPhoto,
@@ -28,6 +27,6 @@ router.put("/profile", authorizeRoles(), updateProfile);
 router.delete("/profile", authorizeRoles(), deleteProfile);
 
 
-router.post("/active-status", authorizeRoles(), activeStatus);
+
 
 module.exports = router;

@@ -150,23 +150,6 @@ const deleteProfile = async (req, res) => {
   }
 };
 
-const activeStatus = async (req, res) => {
-  const userId = req.user?._id;
-
-  try {
-    const result = await activeStatusServicess(userId);
-    res.status(200).json(result);
-  } catch (err) {
-    console.error(err);
-    if (err.message === "USER_ID_REQUIRED") {
-      return res.status(400).json({ message: err.message });
-    }
-    if (err.message === "USER_NOT_FOUND") {
-      return res.status(404).json({ message: err.message });
-    }
-    res.status(500).json({ message: "SERVER_ERROR" });
-  }
-};
 
 module.exports = {
   getUsers,
@@ -179,6 +162,5 @@ module.exports = {
   uploadCoverPhoto,
 
   deleteProfile,
-  activeStatus,
 };
  

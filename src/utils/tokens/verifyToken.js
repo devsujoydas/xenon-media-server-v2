@@ -1,5 +1,6 @@
-const jwt = require("jsonwebtoken"); 
+const jwt = require("jsonwebtoken");
 const User = require("../../modules/users/userModel");
+const { activeStatusServicess } = require("../../modules/users/userServices");
 
 const verifyToken = async (req) => {
   const authHeader = req.headers.authorization;
@@ -20,7 +21,7 @@ const verifyToken = async (req) => {
     const user = await User.findById(decoded.id)
       .select("-password -refreshToken -passResetToken -__v")
       .lean();
-      
+
     if (!user) {
       return {
         error: {
@@ -29,6 +30,9 @@ const verifyToken = async (req) => {
         },
       };
     }
+
+    activeStatusServicess(user._id).catch(console.error);
+    console.log("click man");
 
     return { user };
   } catch (error) {
