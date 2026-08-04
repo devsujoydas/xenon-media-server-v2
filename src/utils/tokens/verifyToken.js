@@ -32,7 +32,7 @@ const verifyToken = async (req) => {
     }
 
     activeStatusServicess(user._id).catch(console.error);
-    console.log("click man");
+   
 
     return { user };
   } catch (error) {

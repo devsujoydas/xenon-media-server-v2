@@ -279,7 +279,7 @@ const activeStatusServicess = async (userId) => {
     );
     userTimers.delete(userId);
     console.log(`⚪ ${userId} marked offline`);
-  }, 4000);
+  }, 15000);
 
   userTimers.set(userId, timeout);
 
