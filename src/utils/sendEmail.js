@@ -1,16 +1,12 @@
 const nodemailer = require("nodemailer");
 
+
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_APP_USER,
-    pass: process.env.EMAIL_APP_PASS,
+    pass: process.env.EMAIL_APP_PASS, 
   },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
 });
 
 const sendEmail = async ({
@@ -32,11 +28,6 @@ const sendEmail = async ({
 
     return info;
   } catch (error) {
-    console.error("Full Email Error:", error);
-    console.error("Code:", error.code);
-    console.error("Command:", error.command);
-    console.error("Response:", error.response);
-
     throw new Error("EMAIL_SEND_FAILED");
   }
 };

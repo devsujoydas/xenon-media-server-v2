@@ -1,4 +1,4 @@
-# 🚀 Xenon Media v2 – Backend API
+# 🚀 Xenly v2 – Backend API
 
 A scalable, modular, and production‑ready backend API for a social media–style application built with **Node.js, Express, MongoDB, and JWT authentication**.
 
@@ -170,12 +170,15 @@ src/
 ## ⚙️ Environment Variables
 
 ``` 
+FRONTEND_URL=your_frontend_url
 PORT=5000
+CLOUD_NAME=your_CLOUD_NAME 
+CLOUD_API_KEY=your_CLOUD_API_KEY
+CLOUD_API_SECRET=your_CLOUD_API_SECRET
 MONGO_URI=your_mongo_connection
 JWT_SECRET=your_jwt_secret
 ACCESS_TOKEN_EXPIRESIN=your_access_expiresin
 REFRESH_TOKEN_EXPIRESIN=your_refresh_expiresin
-FRONTEND_URL=http://localhost:3000
 EMAIL_APP_USER=example@email.com
 EMAIL_APP_PASS=your_email_password
 ```
